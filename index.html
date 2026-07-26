@@ -32,7 +32,7 @@
         </div>
         <div class="flex-1 flex justify-end flex-col items-end">
             <span class="text-[10px] text-gray-400 font-bold uppercase leading-none">Balance</span>
-            <span class="font-black text-lg leading-none">&pound;10.00</span>
+            <span class="text-xs leading-none">&pound;550.00</span>
         </div>
     </header>
 
@@ -202,20 +202,23 @@
                 return `
                 <div class="h-full w-full snap-always snap-center flex flex-col justify-between p-6 border-b-8 border-gray-100">
                     <div class="text-center mt-4">
-                        <span class="text-xs text-gray-400 font-semibold uppercase tracking-wider">${fixture.match}</span>
-                        <div class="text-[10px] text-gray-300 mt-1">${fixture.time}</div>
+                        <span class="text-xs text-gray font-semibold uppercase tracking-wider">${fixture.market}</span>
+                        <div class="text-[10px] text-white mt-1">${fixture.time}</div>
                     </div>
                     <div class="text-center">
-                        <span class="text-xs text-gray-400 font-bold uppercase tracking-widest">${fixture.market}</span>
                         <h2 class="text-5xl font-black mt-2 text-gray-900 break-words leading-tight">${sel.name}</h2>
+                        <span class="text-3xl font-semibold text-gray-400 mt-1">&pound;1 &rarr; <span class="font-black text-[#61AD34]">&pound;${sel.odds.toFixed(2)}</span></span>
                     </div>
                     <div class="flex justify-between items-end mb-4">
                         <div class="flex flex-col">
                             <div class="flex items-baseline space-x-2">
-                                <span class="text-brand font-black text-4xl">${sel.odds.toFixed(2)}</span>
+                                <span class="text-brand font-semibold text-2xl tracking-tighter">${sel.odds.toFixed(2)}</span>
                                 <span class="text-sm text-gray-400 font-normal">odds</span>
                             </div>
-                            <span class="text-sm font-semibold text-gray-400 mt-1">&pound;1 &rarr; &pound;${sel.odds.toFixed(2)}</span>
+                            <div class="text-left mt-4">
+                                <span class="text-LG text-gray-900 font-semibold uppercase tracking-tighter">${fixture.match}</span>
+                                <div class="text-sm text-gray-400 mt-1">${fixture.time}</div>
+                            </div>
                         </div>
                         <div class="flex flex-col items-center space-y-4">
                             <button onclick="toggleLike(this)" class="bg-gray-50 text-gray-400 w-12 h-12 rounded-full flex flex-col items-center justify-center shadow-sm transition-colors">
