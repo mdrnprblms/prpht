@@ -44,13 +44,26 @@
         <span class="truncate">All bets fixed at &pound;1. You can never lose more than one pound per bet.</span>
     </div>
 
-    <div class="flex-1 flex w-full overflow-x-auto snap-x snap-mandatory no-scrollbar relative" id="feed-wrapper" onscroll="updateIndicator()">
+    <!-- HORIZONTAL SWIPE WRAPPER (OUTER) -->
+    <div class="flex-1 w-full overflow-x-auto snap-x snap-mandatory no-scrollbar backdrop-blur-md" id="feed-wrapper" onscroll="updateIndicator()">
         
-        <main id="tiktok-feed" class="w-full shrink-0 h-full overflow-y-auto snap-y snap-mandatory pb-24 no-scrollbar snap-center relative">
+        <!-- INNER TRACK (200% Width) -->
+        <div class="flex w-[200%] h-full relative">
+            
+            <!-- BACKGROUND VIDEO (50% Opacity) -->
+            <video src="bg.mp4" autoplay loop muted playsinline class="absolute top-0 left-0 w-full h-full object-cover -z-10 opacity-50 pointer-events-none"></video>
+            
+            <!-- TIKTOK FEED (Takes up 1st Half) -->
+            <main id="tiktok-feed" class="w-1/2 shrink-0 h-full overflow-y-auto snap-y snap-mandatory pb-24 no-scrollbar snap-center relative">
+                <!-- Dynamic Content Injected Here -->
             </main>
 
-        <main id="traditional-feed" class="w-full shrink-0 h-full overflow-y-auto pb-24 snap-center relative">
+            <!-- TRADITIONAL FEED (Takes up 2nd Half) -->
+            <main id="traditional-feed" class="w-1/2 shrink-0 h-full overflow-y-auto pb-24 snap-center relative">
+                <!-- Dynamic Content Injected Here -->
             </main>
+            
+        </div>
     </div>
 
     <div class="absolute bottom-20 w-full flex justify-center space-x-1.5 pb-2 pointer-events-none z-10" id="indicator-dots">
