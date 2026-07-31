@@ -38,130 +38,43 @@
         /* ------------------------------------------------------------------
            ORGANIC BLOB FIELD
 
-           The amorphous shapes come from SVG feTurbulence + feDisplacementMap
-           (see #warp-a / #warp-b in the body), NOT from border-radius. A
-           displacement map shreds a soft radial gradient into tendrilled,
-           non-elliptical forms the way a real fMRI activation map looks.
+           Rendered on a canvas, deliberately NOT with an SVG filter. The
+           previous feTurbulence + feDisplacementMap approach worked in Blink,
+           but WebKit (iOS Safari) does not produce a transparent result when
+           an SVG filter is applied to an HTML element - it painted an opaque
+           near-white layer over the whole viewport, which is what hid the
+           dark-mode background and flattened the blobs back into circles.
 
-           The filter sits on the *static container*, never on the moving blob.
-           That distinction is the whole trick: a filter region travels with its
-           element, so filtering a moving blob would freeze one warped shape and
-           slide it around. Anchoring the warp field to a fixed container and
-           drifting the blobs *through* it means each blob is re-deformed by a
-           different part of the noise every frame, so the silhouette genuinely
-           morphs. Turbulence params stay static so the noise is generated once
-           rather than recomputed per frame.
+           Instead the field is drawn at a deliberately tiny internal
+           resolution and upscaled by CSS. The browser's bilinear smoothing on
+           that upscale is what makes the edges soft, and domain-warped value
+           noise (noise sampled at coordinates offset by more noise) is what
+           makes the shapes tendrilled and amorphous rather than elliptical.
            ------------------------------------------------------------------ */
 
-        .blob-field {
+        #blob-canvas {
             position: absolute;
             inset: 0;
-            /* Expanded region + sRGB interpolation are set on the filters
-               themselves; displaced pixels would otherwise clip at the edges. */
+            width: 100%;
+            height: 100%;
+            opacity: 0.85;
         }
 
-        .field-a { filter: url(#warp-a); }
-        .field-b { filter: url(#warp-b); }
-
-        /* Long, wandering paths. Travel distance matters more than shape here:
-           the further a blob moves across the noise field, the more its
-           outline is reworked. */
-        @keyframes drift-a {
-            0%   { transform: translate(0%, 0%) scale(1); }
-            25%  { transform: translate(26%, 14%) scale(1.14); }
-            50%  { transform: translate(10%, 34%) scale(0.9); }
-            75%  { transform: translate(-18%, 12%) scale(1.08); }
-            100% { transform: translate(0%, 0%) scale(1); }
-        }
-
-        @keyframes drift-b {
-            0%   { transform: translate(0%, 0%) scale(1); }
-            33%  { transform: translate(-24%, 18%) scale(0.92); }
-            66%  { transform: translate(-8%, -22%) scale(1.16); }
-            100% { transform: translate(0%, 0%) scale(1); }
-        }
-
-        @keyframes drift-c {
-            0%   { transform: translate(0%, 0%) scale(1); }
-            40%  { transform: translate(20%, -20%) scale(1.1); }
-            70%  { transform: translate(-14%, -6%) scale(0.94); }
-            100% { transform: translate(0%, 0%) scale(1); }
-        }
-
-        .blob {
-            position: absolute;
-            border-radius: 50%;
-            /* Source shape is a plain soft circle on purpose - the warp filter
-               is what destroys the circularity. */
-            opacity: 0.8;
-            transition: --team-color 0.8s ease-in-out;
-            will-change: transform;
-        }
-
-        .dark .blob { opacity: 0.55; }
-
-        /* Main base color blob */
-        .blob-1 {
-            background: radial-gradient(circle at center, var(--team-color) 2%, transparent 42%);
-            width: 80vw; height: 80vw;
-            max-width: 380px; max-height: 380px;
-            top: 2%; left: -12%;
-            animation: drift-a 13s infinite ease-in-out;
-        }
-
-        /* Bright core hotspot (White fading to team color) */
-        .blob-2 {
-            background: radial-gradient(circle at center, rgba(255,255,255,0.9) 0%, var(--team-color) 16%, transparent 44%);
-            width: 62vw; height: 62vw;
-            max-width: 300px; max-height: 300px;
-            top: 18%; right: -18%;
-            animation: drift-b 10s infinite ease-in-out;
-            animation-delay: -4s;
-        }
-
-        .dark .blob-2 {
-            background: radial-gradient(circle at center, rgba(255,255,255,0.4) 0%, var(--team-color) 22%, transparent 44%);
-        }
-
-        /* Third supporting blob */
-        .blob-3 {
-            background: radial-gradient(circle at center, var(--team-color) 0%, transparent 40%);
-            width: 68vw; height: 68vw;
-            max-width: 330px; max-height: 330px;
-            bottom: 6%; left: 8%;
-            animation: drift-c 16s infinite ease-in-out;
-            animation-delay: -6s;
-        }
+        .dark #blob-canvas { opacity: 0.6; }
 
         /* The bet slip belongs to the traditional feed only. id+class specificity
            beats Tailwind's `flex` display utility, which a plain `hidden` class
            could lose to depending on CDN rule order. */
         #collapsed-slip.slip-hidden { display: none; }
 
-        /* Displacement is heavy on low-end GPUs and the drift is decorative. */
-        @media (prefers-reduced-motion: reduce) {
-            .blob { animation: none; }
-        }
     </style>
 </head>
 <body class="bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans h-screen flex flex-col relative overflow-hidden transition-colors duration-300">
 
-    <!-- Warp filters for the background blob fields.
-         color-interpolation-filters="sRGB" is required: the linearRGB default
-         washes the team colours out. The oversized filter region gives the
-         displaced pixels somewhere to go instead of clipping at the edges. -->
+    <!-- Icon symbols. Inlined so `fill="currentColor"` can inherit each
+         button's text colour, which an <img> could not do. -->
     <svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
         <defs>
-            <filter id="warp-a" x="-35%" y="-35%" width="170%" height="170%" color-interpolation-filters="sRGB">
-                <feTurbulence type="fractalNoise" baseFrequency="0.0055 0.009" numOctaves="4" seed="7" result="noise"/>
-                <feDisplacementMap in="SourceGraphic" in2="noise" scale="260" xChannelSelector="R" yChannelSelector="G" result="warped"/>
-                <feGaussianBlur in="warped" stdDeviation="14"/>
-            </filter>
-            <filter id="warp-b" x="-35%" y="-35%" width="170%" height="170%" color-interpolation-filters="sRGB">
-                <feTurbulence type="fractalNoise" baseFrequency="0.008 0.0045" numOctaves="3" seed="23" result="noise"/>
-                <feDisplacementMap in="SourceGraphic" in2="noise" scale="200" xChannelSelector="G" yChannelSelector="B" result="warped"/>
-                <feGaussianBlur in="warped" stdDeviation="18"/>
-            </filter>
             <symbol id="icon-like" viewBox="0 0 124.61 113.09">
                 <g>
     <path d="M34.71.08c4.41-.32,8.87.32,13.07,1.71,4.31,1.35,8.2,3.98,12.09,4.42,4.45.65,8.64-1.46,12.64-3.19,26.32-12.01,55.83,14.2,51.7,41.68-1.77,13-9.95,22.19-18.62,31.3-9.83,10.53-23.22,23.99-31.24,31.18-3.07,2.71-6.39,5.34-10.58,5.82-6.3.86-11.13-4.12-15.08-8.38-11.99-12.56-30.05-26.82-40.32-41.1C-10.77,40.52,5,2.73,34.52.09h.2ZM33.53,17.16c-11.81,2.22-18.59,15.5-16.7,26.79,1,6.24,4.44,10.74,9.35,16.24,8.09,8.94,19.83,18.78,27.62,26.9,1.84,1.87,4.24,4.48,5.94,5.71,2.36,1.98,4.68.69,6.52-1.17,2.1-2.06,5.1-5.19,8.59-8.73,7.52-7.68,16.65-17.01,23.87-24.39,4.83-4.57,7.84-9.35,8.7-15.97,2.13-14.33-10.78-29.09-25.1-24.93-4.75,1.23-8.81,4.67-12.64,7.46-2.59,1.84-5.3,3.09-7.99,2.93-4.79-.24-8.52-4.19-12.77-7.14-4.35-3.16-9.87-4.81-15.22-3.74l-.19.04Z"/>
@@ -216,17 +129,9 @@
 
     <div class="flex-1 w-full overflow-x-auto snap-x snap-mandatory no-scrollbar relative" id="feed-wrapper" onscroll="updateIndicator()">
         
-        <!-- ORGANIC (TURBULENCE-WARPED) BLOB BACKGROUND -->
+        <!-- ORGANIC BLOB BACKGROUND (canvas - see #blob-canvas notes above) -->
         <div class="fixed inset-0 w-full h-full overflow-hidden pointer-events-none -z-10">
-            <!-- Two fields with different noise seeds/scales so the blobs don't
-                 all deform in lockstep. Filter is on the field, blobs move inside. -->
-            <div class="blob-field field-a">
-                <div class="blob blob-1"></div>
-                <div class="blob blob-3"></div>
-            </div>
-            <div class="blob-field field-b">
-                <div class="blob blob-2"></div>
-            </div>
+            <canvas id="blob-canvas"></canvas>
             <!-- Grain Texture Overlay -->
             <div class="absolute inset-0 opacity-10 mix-blend-overlay" style="background-image: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E&quot;);"></div>
         </div>
@@ -354,9 +259,96 @@
             { id: 'b6', sport: 'Basketball', color: '#F97316', league: 'EuroLeague', time: '20:00 · Sun 03 Aug', match: 'Panathinaikos v Monaco', market: 'Moneyline', selections: [{name: 'PAN', odds: 1.90}, {name: 'MON', odds: 1.90}], target: 1 },
         ];
 
+        /* ----------------------------------------------------------------
+           Canvas blob field. Drawn at a tiny internal resolution (the CSS
+           upscale is what softens it) using domain-warped value noise, so the
+           shapes come out amorphous instead of elliptical. Replaces an SVG
+           feDisplacementMap filter that WebKit/iOS rendered as an opaque
+           white sheet over the page.
+           ---------------------------------------------------------------- */
+        const blobField = (function () {
+            const canvas = document.getElementById('blob-canvas');
+            const ctx = canvas.getContext('2d');
+            const W = 64, H = 132;              // internal grid, upscaled by CSS
+            canvas.width = W; canvas.height = H;
+            const img = ctx.createImageData(W, H);
+            const data = img.data;
+
+            let target = [249, 115, 22];
+            let current = [249, 115, 22];
+
+            // Unsigned shifts throughout: a signed >> here skews the
+            // distribution low (mean ~0.22) and the whole field falls below
+            // the alpha threshold, rendering nothing.
+            function hash(ix, iy) {
+                let n = Math.imul(ix, 0x27d4eb2d) ^ Math.imul(iy, 0x165667b1);
+                n = Math.imul(n ^ (n >>> 15), 0x2c1b3c6d);
+                n = Math.imul(n ^ (n >>> 12), 0x297a2d39);
+                n ^= n >>> 15;
+                return (n >>> 0) / 4294967296;
+            }
+            function fade(t) { return t * t * (3 - 2 * t); }
+            function noise2(x, y) {
+                const ix = Math.floor(x), iy = Math.floor(y);
+                const fx = fade(x - ix), fy = fade(y - iy);
+                const a = hash(ix, iy), b = hash(ix + 1, iy);
+                const c = hash(ix, iy + 1), d = hash(ix + 1, iy + 1);
+                return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy;
+            }
+            function fbm(x, y) {
+                let v = 0, amp = 0.5, f = 1;
+                for (let o = 0; o < 4; o++) { v += amp * noise2(x * f, y * f); f *= 2; amp *= 0.5; }
+                return v / 0.9375;   // amplitudes sum to 0.9375; renormalise to ~[0,1]
+            }
+            function smoothstep(e0, e1, x) {
+                const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0)));
+                return t * t * (3 - 2 * t);
+            }
+
+            function setColor(hex) {
+                const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || '');
+                if (m) target = [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)];
+            }
+
+            function frame(ts) {
+                const t = ts * 0.00007;
+                for (let i = 0; i < 3; i++) current[i] += (target[i] - current[i]) * 0.05;
+                const cr = current[0], cg = current[1], cb = current[2];
+
+                let p = 0;
+                for (let y = 0; y < H; y++) {
+                    const ny = (y / H) * 3.1;
+                    for (let x = 0; x < W; x++, p += 4) {
+                        const nx = (x / W) * 1.7;
+                        // Domain warp: sample noise at coordinates displaced by
+                        // more noise. This is what breaks up the round shapes.
+                        const wx = fbm(nx * 1.25 + t, ny * 1.25);
+                        const wy = fbm(nx * 1.25 + 4.7, ny * 1.25 - t * 0.85);
+                        const v = fbm(nx + wx * 1.9 + t * 0.6, ny + wy * 1.9);
+
+                        const a = smoothstep(0.50, 0.74, v);
+                        if (a <= 0) { data[p + 3] = 0; continue; }
+                        const core = smoothstep(0.70, 0.82, v);   // bright hotspot
+                        data[p]     = cr + (255 - cr) * core * 0.75;
+                        data[p + 1] = cg + (255 - cg) * core * 0.75;
+                        data[p + 2] = cb + (255 - cb) * core * 0.75;
+                        data[p + 3] = a * 235;
+                    }
+                }
+                ctx.putImageData(img, 0, 0);
+                requestAnimationFrame(frame);
+            }
+
+            return {
+                start: function () { requestAnimationFrame(frame); },
+                setColor: setColor
+            };
+        })();
+
         function init() {
             renderTabs();
             renderFeeds();
+            blobField.start();
             // Only ran on scroll before, so the slip's initial state was never set.
             updateIndicator();
         }
@@ -456,6 +448,7 @@
                     if (entry.isIntersecting) {
                         const newColor = entry.target.getAttribute('data-color') || '#F97316';
                         document.documentElement.style.setProperty('--team-color', newColor);
+                        blobField.setColor(newColor);   // canvas eases toward it
                     }
                 });
             }, { threshold: 0.6 });
