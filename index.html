@@ -12,6 +12,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
+            darkMode: 'class', // Enables the dark mode toggle
             theme: {
                 extend: {
                     fontFamily: { sans: ['Nunito', 'sans-serif'] },
@@ -20,55 +21,118 @@
             }
         }
     </script>
-</head>
-<body class="bg-white text-gray-900 font-sans h-screen flex flex-col relative overflow-hidden">
+    
+    <!-- CSS BLOB ANIMATIONS, GRADIENTS & NOISE -->
+    <style>
+        :root {
+            /* This is the master color that JS will update instantly */
+            --team-color: #F97316; 
+        }
+        
+        @keyframes drift1 {
+            0% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(30px, -40px) scale(1.1); }
+            66% { transform: translate(-20px, 30px) scale(0.9); }
+            100% { transform: translate(0px, 0px) scale(1); }
+        }
+        
+        @keyframes drift2 {
+            0% { transform: translate(0px, 0px) scale(1); }
+            50% { transform: translate(-40px, 20px) scale(0.85); }
+            100% { transform: translate(0px, 0px) scale(1); }
+        }
 
-    <header class="flex justify-between items-center p-4 border-b border-gray-100 w-full shrink-0">
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(45px); /* Reduced blur so they don't wash out entirely */
+            opacity: 0.6;
+            transition: --team-color 1s ease-in-out;
+        }
+
+        /* Blob 1: The main aura */
+        .blob-1 {
+            background: radial-gradient(circle at center, var(--team-color) 0%, transparent 70%);
+            width: 400px; height: 400px;
+            top: -5%; left: -10%;
+            animation: drift1 8s infinite ease-in-out;
+        }
+
+        /* Blob 2: The "hotspot" core (white center fading to team color) */
+        .blob-2 {
+            background: radial-gradient(circle at center, rgba(255,255,255,0.8) 0%, var(--team-color) 35%, transparent 75%);
+            width: 300px; height: 300px;
+            top: 20%; right: -10%;
+            animation: drift2 6s infinite ease-in-out;
+            opacity: 0.8;
+        }
+
+        /* Blob 3: A supporting bottom highlight */
+        .blob-3 {
+            background: radial-gradient(circle at center, var(--team-color) 0%, transparent 65%);
+            width: 350px; height: 350px;
+            bottom: -5%; left: 15%;
+            animation: drift1 10s infinite ease-in-out reverse;
+        }
+        
+        /* Dark mode tweaks for the blobs so they stay vibrant */
+        .dark .blob { opacity: 0.4; }
+        .dark .blob-2 { background: radial-gradient(circle at center, rgba(255,255,255,0.4) 0%, var(--team-color) 40%, transparent 75%); }
+    </style>
+</head>
+<body class="bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans h-screen flex flex-col relative overflow-hidden transition-colors duration-300">
+
+    <header class="flex justify-between items-center p-4 border-b border-gray-100 dark:border-gray-800 w-full shrink-0 z-10 bg-white/50 dark:bg-gray-950/50 backdrop-blur-md">
         <div class="flex-1 flex items-center justify-start">
             <span class="text-xs text-gray-400 font-bold tracking-widest uppercase">Micro-Stakes</span>
         </div>
         <div class="flex-none flex justify-center">
             <img src="logo.svg" alt="prpht" class="h-6" onerror="this.outerHTML='<span class=\'font-black text-brand text-xl\'>prpht</span>'">
         </div>
-        <div class="flex-1 flex justify-end flex-col items-end">
-            <span class="text-[10px] text-gray-400 font-bold uppercase leading-none">Balance</span>
-            <span class="text-xs leading-none">&pound;550.00</span>
+        <div class="flex-1 flex justify-end items-center space-x-3">
+            <!-- DARK MODE TOGGLE BUTTON -->
+            <button onclick="toggleDarkMode()" class="text-gray-400 hover:text-brand transition-colors p-1">
+                <!-- Moon icon (shows in light mode) -->
+                <svg class="w-5 h-5 dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                <!-- Sun icon (shows in dark mode) -->
+                <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            </button>
+            <div class="flex flex-col items-end">
+                <span class="text-[10px] text-gray-400 font-bold uppercase leading-none">Balance</span>
+                <span class="text-xs leading-none font-bold dark:text-white">&pound;550.00</span>
+            </div>
         </div>
     </header>
 
-    <div id="sport-tabs" class="flex overflow-x-auto border-b border-gray-100 hide-scrollbar no-scrollbar whitespace-nowrap shrink-0">
-        </div>
+    <div id="sport-tabs" class="flex overflow-x-auto border-b border-gray-100 dark:border-gray-800 hide-scrollbar no-scrollbar whitespace-nowrap shrink-0 z-10 bg-white/80 dark:bg-gray-950/80 backdrop-blur-md transition-colors duration-300">
+    </div>
 
-    <div class="bg-[#FFF8F0] text-[#E85D04] text-xs font-semibold p-3 flex items-center space-x-2 border-b border-[#FFE5D0] shrink-0">
+    <div class="bg-[#FFF8F0]/90 dark:bg-gray-900/90 backdrop-blur-md text-[#E85D04] text-xs font-semibold p-3 flex items-center space-x-2 border-b border-[#FFE5D0] dark:border-gray-800 shrink-0 z-10 transition-colors duration-300">
         <span class="w-1.5 h-1.5 bg-[#E85D04] rounded-full inline-block shrink-0"></span>
         <span class="truncate">All bets fixed at &pound;1. You can never lose more than one pound per bet.</span>
     </div>
 
-    <!-- HORIZONTAL SWIPE WRAPPER (OUTER) -->
-    <div class="flex-1 w-full overflow-x-auto snap-x snap-mandatory no-scrollbar backdrop-blur-md" id="feed-wrapper" onscroll="updateIndicator()">
+    <!-- HORIZONTAL SWIPE WRAPPER -->
+    <div class="flex-1 w-full overflow-x-auto snap-x snap-mandatory no-scrollbar relative" id="feed-wrapper" onscroll="updateIndicator()">
         
-        <!-- INNER TRACK (200% Width) -->
-        <div class="flex w-[200%] h-full relative">
-            
-            <!-- BACKGROUND VIDEO (50% Opacity) -->
-            <video src="bg.mp4" autoplay loop muted playsinline class="absolute top-0 left-0 w-full h-full object-cover -z-10 opacity-50 pointer-events-none"></video>
-            
-            <!-- TIKTOK FEED (Takes up 1st Half) -->
-            <main id="tiktok-feed" class="w-1/2 shrink-0 h-full overflow-y-auto snap-y snap-mandatory no-scrollbar snap-center relative">
-                <!-- Dynamic Content Injected Here -->
-            </main>
-
-            <!-- TRADITIONAL FEED (Takes up 2nd Half) -->
-            <main id="traditional-feed" class="w-1/2 shrink-0 h-full overflow-y-auto pb-24 snap-center relative">
-                <!-- Dynamic Content Injected Here -->
-            </main>
-            
+        <!-- CSS GRADIENT BLOBS & BRAIN SCAN TEXTURE -->
+        <div class="fixed inset-0 w-full h-full overflow-hidden pointer-events-none -z-10">
+            <div class="blob blob-1"></div>
+            <div class="blob blob-2"></div>
+            <div class="blob blob-3"></div>
+            <!-- Grain Texture Overlay -->
+            <div class="absolute inset-0 opacity-10 mix-blend-overlay" style="background-image: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E&quot;);"></div>
+        </div>
+        
+        <div class="flex w-[200%] h-full relative z-0">
+            <main id="tiktok-feed" class="w-1/2 shrink-0 h-full overflow-y-auto snap-y snap-mandatory no-scrollbar snap-center relative"></main>
+            <main id="traditional-feed" class="w-1/2 shrink-0 h-full overflow-y-auto pb-24 snap-center relative"></main>
         </div>
     </div>
 
     <div class="absolute bottom-20 w-full flex justify-center space-x-1.5 pb-2 pointer-events-none z-10" id="indicator-dots">
         <div class="w-4 h-1.5 bg-brand rounded-full transition-all duration-300" id="dot-left"></div>
-        <div class="w-1.5 h-1.5 bg-gray-300 rounded-full transition-all duration-300" id="dot-right"></div>
+        <div class="w-1.5 h-1.5 bg-gray-300 dark:bg-gray-700 rounded-full transition-all duration-300" id="dot-right"></div>
     </div>
 
     <div onclick="toggleSlip()" class="absolute bottom-0 w-full bg-brand text-white p-4 rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.1)] flex justify-between items-center cursor-pointer z-20">
@@ -82,7 +146,7 @@
         </div>
     </div>
 
-    <div id="expanded-slip" class="fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-2xl shadow-[0_-10px_40px_rgba(0,0,0,0.15)] flex flex-col h-[85vh] transform translate-y-full transition-transform duration-300">
+    <div id="expanded-slip" class="fixed inset-x-0 bottom-0 z-50 bg-white dark:bg-gray-900 rounded-t-2xl shadow-[0_-10px_40px_rgba(0,0,0,0.15)] flex flex-col h-[85vh] transform translate-y-full transition-transform duration-300">
         <div onclick="toggleSlip()" class="bg-brand text-white p-4 rounded-t-2xl flex justify-between items-center cursor-pointer shrink-0">
             <div class="flex items-center space-x-3">
                 <div id="expanded-count" class="bg-white text-brand font-black w-6 h-6 rounded-full flex items-center justify-center text-sm">0</div>
@@ -93,13 +157,13 @@
                 <span class="text-xl">&darr;</span>
             </div>
         </div>
-        <div class="p-4 overflow-y-auto flex-1 bg-white">
+        <div class="p-4 overflow-y-auto flex-1 bg-white dark:bg-gray-900 transition-colors duration-300">
             <div class="flex justify-between items-center mb-4">
                 <span class="text-xs font-bold text-gray-500 tracking-wider">SINGLES</span>
                 <button onclick="clearSlip()" class="text-brand text-xs font-bold">Clear all</button>
             </div>
             <div id="slip-bets-container" class="space-y-4"></div>
-            <div id="acca-block" class="hidden mt-6 border border-brand bg-orange-50 rounded-lg p-3 justify-between items-center">
+            <div id="acca-block" class="hidden mt-6 border border-brand bg-orange-50 dark:bg-gray-800 rounded-lg p-3 justify-between items-center">
                 <div>
                     <div id="acca-title" class="font-bold text-brand">2-fold Accumulator</div>
                     <div class="text-xs text-orange-400 font-semibold mt-1">&pound;1 stake</div>
@@ -110,10 +174,10 @@
                 </div>
             </div>
         </div>
-        <div class="p-4 border-t border-gray-100 bg-white shrink-0 pb-8">
+        <div class="p-4 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shrink-0 pb-8 transition-colors duration-300">
             <div class="flex justify-between items-center mb-4">
-                <span class="font-bold text-gray-800">Total stake</span>
-                <span id="total-stake-text" class="font-black text-lg text-gray-900">&pound;0.00</span>
+                <span class="font-bold text-gray-800 dark:text-gray-200">Total stake</span>
+                <span id="total-stake-text" class="font-black text-lg text-gray-900 dark:text-white">&pound;0.00</span>
             </div>
             <button class="w-full bg-brand text-white font-bold py-3.5 rounded-xl text-lg shadow-md">
                 Place bets &middot; <span id="place-btn-stake">&pound;0.00</span>
@@ -122,81 +186,68 @@
         </div>
     </div>
 
-    <script>
-        // ---------------------------------------------------------
-        // FRACTIONAL ODDS CONVERTER
-        // ---------------------------------------------------------
+<script>
+        // DARK MODE TOGGLE LOGIC
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+        }
+
         function getFraction(decimal) {
-            // Betting odds fraction is (decimal - 1) / 1
             const profit = decimal - 1;
             if (profit <= 0) return "1/1"; 
-
-            // Round to 2 decimal places to avoid floating point errors
             let numerator = Math.round(profit * 100);
             let denominator = 100;
-
-            // Greatest Common Divisor helper
-            function gcd(a, b) {
-                return b ? gcd(b, a % b) : a;
-            }
-
+            function gcd(a, b) { return b ? gcd(b, a % b) : a; }
             const commonDivisor = gcd(numerator, denominator);
-            
             return `${numerator / commonDivisor}/${denominator / commonDivisor}`;
         }
 
-        // ---------------------------------------------------------
-        // 1. DATA: 30 FIXTURES ACROSS 5 SPORTS
-        // ---------------------------------------------------------
         const sportsList = ['Football', 'Racing', 'Tennis', 'Cricket', 'Basketball'];
         let currentSport = 'Football';
         let bets = [];
 
         const demoFixtures = [
-            // FOOTBALL (6)
-            { id: 'f1', sport: 'Football', league: 'Premier League', time: '12:30 · Sat 26 Jul', match: 'Arsenal v Chelsea', market: 'Match Result', selections: [{name: 'ARS', odds: 2.10}, {name: 'DRAW', odds: 3.40}, {name: 'CHE', odds: 3.80}], target: 0 },
-            { id: 'f2', sport: 'Football', league: 'Premier League', time: '17:30 · Sat 26 Jul', match: 'Man City v Liverpool', market: 'Match Result', selections: [{name: 'CIT', odds: 1.90}, {name: 'DRAW', odds: 3.60}, {name: 'LIV', odds: 4.20}], target: 1 },
-            { id: 'f3', sport: 'Football', league: 'La Liga', time: '16:00 · Sun 27 Jul', match: 'Barcelona v Real Madrid', market: 'Match Result', selections: [{name: 'BAR', odds: 2.50}, {name: 'DRAW', odds: 3.30}, {name: 'MAD', odds: 2.90}], target: 0 },
-            { id: 'f4', sport: 'Football', league: 'Bundesliga', time: '14:30 · Sun 27 Jul', match: 'Bayern Munich v Dortmund', market: 'Match Result', selections: [{name: 'MUN', odds: 1.75}, {name: 'DRAW', odds: 3.80}, {name: 'DOR', odds: 5.00}], target: 2 },
-            { id: 'f5', sport: 'Football', league: 'Serie A', time: '19:45 · Mon 28 Jul', match: 'Juventus v AC Milan', market: 'Match Result', selections: [{name: 'JUV', odds: 2.40}, {name: 'DRAW', odds: 3.10}, {name: 'MIL', odds: 2.80}], target: 1 },
-            { id: 'f6', sport: 'Football', league: 'Ligue 1', time: '20:00 · Tue 29 Jul', match: 'PSG v Marseille', market: 'Match Result', selections: [{name: 'PSG', odds: 1.45}, {name: 'DRAW', odds: 4.50}, {name: 'MAR', odds: 6.50}], target: 0 },
+            // FOOTBALL
+            { id: 'f1', sport: 'Football', color: '#EF0107', league: 'Premier League', time: '12:30 · Sat 26 Jul', match: 'Arsenal v Chelsea', market: 'Match Result', selections: [{name: 'ARS', odds: 2.10}, {name: 'DRAW', odds: 3.40}, {name: 'CHE', odds: 3.80}], target: 0 },
+            { id: 'f2', sport: 'Football', color: '#6CABDD', league: 'Premier League', time: '17:30 · Sat 26 Jul', match: 'Man City v Liverpool', market: 'Match Result', selections: [{name: 'CIT', odds: 1.90}, {name: 'DRAW', odds: 3.60}, {name: 'LIV', odds: 4.20}], target: 1 },
+            { id: 'f3', sport: 'Football', color: '#004D98', league: 'La Liga', time: '16:00 · Sun 27 Jul', match: 'Barcelona v Real Madrid', market: 'Match Result', selections: [{name: 'BAR', odds: 2.50}, {name: 'DRAW', odds: 3.30}, {name: 'MAD', odds: 2.90}], target: 0 },
+            { id: 'f4', sport: 'Football', color: '#DC052D', league: 'Bundesliga', time: '14:30 · Sun 27 Jul', match: 'Bayern Munich v Dortmund', market: 'Match Result', selections: [{name: 'MUN', odds: 1.75}, {name: 'DRAW', odds: 3.80}, {name: 'DOR', odds: 5.00}], target: 2 },
+            { id: 'f5', sport: 'Football', color: '#9ca3af', league: 'Serie A', time: '19:45 · Mon 28 Jul', match: 'Juventus v AC Milan', market: 'Match Result', selections: [{name: 'JUV', odds: 2.40}, {name: 'DRAW', odds: 3.10}, {name: 'MIL', odds: 2.80}], target: 1 },
+            { id: 'f6', sport: 'Football', color: '#004170', league: 'Ligue 1', time: '20:00 · Tue 29 Jul', match: 'PSG v Marseille', market: 'Match Result', selections: [{name: 'PSG', odds: 1.45}, {name: 'DRAW', odds: 4.50}, {name: 'MAR', odds: 6.50}], target: 0 },
             
-            // RACING (6)
-            { id: 'r1', sport: 'Racing', league: 'Ascot', time: '13:15 · Today', match: 'King George VI Stakes', market: 'To Win', selections: [{name: 'AUGUSTE RODIN', odds: 2.50}, {name: 'REBEL ROMANCE', odds: 4.00}, {name: 'LUXEMBOURG', odds: 6.50}], target: 0 },
-            { id: 'r2', sport: 'Racing', league: 'Cheltenham', time: '14:30 · Today', match: 'Gold Cup', market: 'To Win', selections: [{name: 'GALOPIN DES', odds: 1.80}, {name: 'FASTORSLOW', odds: 5.00}, {name: 'GERRI COLOMBE', odds: 7.00}], target: 1 },
-            { id: 'r3', sport: 'Racing', league: 'Newmarket', time: '15:45 · Today', match: 'Guineas Stakes', market: 'To Win', selections: [{name: 'CITY OF TROY', odds: 2.10}, {name: 'ROSALLION', odds: 3.50}, {name: 'GHOSTWRITER', odds: 8.00}], target: 0 },
-            { id: 'r4', sport: 'Racing', league: 'Aintree', time: '16:00 · Tomorrow', match: 'Grand National', market: 'To Win', selections: [{name: 'CORACH RAMBLER', odds: 6.00}, {name: 'I AM MAXIMUS', odds: 8.00}, {name: 'MEETINGOFTHE', odds: 10.0}], target: 2 },
-            { id: 'r5', sport: 'Racing', league: 'Goodwood', time: '17:15 · Tomorrow', match: 'Sussex Stakes', market: 'To Win', selections: [{name: 'PADDINGTON', odds: 1.50}, {name: 'INSPIRAL', odds: 4.50}, {name: 'CHALDEAN', odds: 9.00}], target: 0 },
-            { id: 'r6', sport: 'Racing', league: 'York', time: '18:30 · Tomorrow', match: 'Juddmonte Int.', market: 'To Win', selections: [{name: 'MOSTAHDAF', odds: 3.00}, {name: 'NASHWA', odds: 5.00}, {name: 'KING OF STEEL', odds: 5.50}], target: 1 },
+            // RACING
+            { id: 'r1', sport: 'Racing', color: '#F97316', league: 'Ascot', time: '13:15 · Today', match: 'King George VI Stakes', market: 'To Win', selections: [{name: 'AUGUSTE RODIN', odds: 2.50}, {name: 'REBEL ROMANCE', odds: 4.00}, {name: 'LUXEMBOURG', odds: 6.50}], target: 0 },
+            { id: 'r2', sport: 'Racing', color: '#F97316', league: 'Cheltenham', time: '14:30 · Today', match: 'Gold Cup', market: 'To Win', selections: [{name: 'GALOPIN DES', odds: 1.80}, {name: 'FASTORSLOW', odds: 5.00}, {name: 'GERRI COLOMBE', odds: 7.00}], target: 1 },
+            { id: 'r3', sport: 'Racing', color: '#F97316', league: 'Newmarket', time: '15:45 · Today', match: 'Guineas Stakes', market: 'To Win', selections: [{name: 'CITY OF TROY', odds: 2.10}, {name: 'ROSALLION', odds: 3.50}, {name: 'GHOSTWRITER', odds: 8.00}], target: 0 },
+            { id: 'r4', sport: 'Racing', color: '#F97316', league: 'Aintree', time: '16:00 · Tomorrow', match: 'Grand National', market: 'To Win', selections: [{name: 'CORACH RAMBLER', odds: 6.00}, {name: 'I AM MAXIMUS', odds: 8.00}, {name: 'MEETINGOFTHE', odds: 10.0}], target: 2 },
+            { id: 'r5', sport: 'Racing', color: '#F97316', league: 'Goodwood', time: '17:15 · Tomorrow', match: 'Sussex Stakes', market: 'To Win', selections: [{name: 'PADDINGTON', odds: 1.50}, {name: 'INSPIRAL', odds: 4.50}, {name: 'CHALDEAN', odds: 9.00}], target: 0 },
+            { id: 'r6', sport: 'Racing', color: '#F97316', league: 'York', time: '18:30 · Tomorrow', match: 'Juddmonte Int.', market: 'To Win', selections: [{name: 'MOSTAHDAF', odds: 3.00}, {name: 'NASHWA', odds: 5.00}, {name: 'KING OF STEEL', odds: 5.50}], target: 1 },
 
-            // TENNIS (6)
-            { id: 't1', sport: 'Tennis', league: 'Wimbledon', time: '13:00 · Wed 30 Jul', match: 'N. Djokovic v C. Alcaraz', market: 'Match Winner', selections: [{name: 'DJOKOVIC', odds: 1.65}, {name: 'ALCARAZ', odds: 2.20}], target: 0 },
-            { id: 't2', sport: 'Tennis', league: 'US Open', time: '18:00 · Wed 30 Jul', match: 'J. Sinner v D. Medvedev', market: 'Match Winner', selections: [{name: 'SINNER', odds: 1.80}, {name: 'MEDVEDEV', odds: 2.00}], target: 1 },
-            { id: 't3', sport: 'Tennis', league: 'Roland Garros', time: '11:00 · Thu 31 Jul', match: 'I. Swiatek v A. Sabalenka', market: 'Match Winner', selections: [{name: 'SWIATEK', odds: 1.40}, {name: 'SABALENKA', odds: 2.90}], target: 0 },
-            { id: 't4', sport: 'Tennis', league: 'Australian Open', time: '09:00 · Thu 31 Jul', match: 'C. Gauff v E. Rybakina', market: 'Match Winner', selections: [{name: 'GAUFF', odds: 2.10}, {name: 'RYBAKINA', odds: 1.70}], target: 1 },
-            { id: 't5', sport: 'Tennis', league: 'Miami Open', time: '14:00 · Fri 01 Aug', match: 'A. Zverev v S. Tsitsipas', market: 'Match Winner', selections: [{name: 'ZVEREV', odds: 1.90}, {name: 'TSITSIPAS', odds: 1.90}], target: 0 },
-            { id: 't6', sport: 'Tennis', league: 'Indian Wells', time: '16:30 · Fri 01 Aug', match: 'O. Jabeur v J. Pegula', market: 'Match Winner', selections: [{name: 'JABEUR', odds: 2.30}, {name: 'PEGULA', odds: 1.60}], target: 1 },
+            // TENNIS
+            { id: 't1', sport: 'Tennis', color: '#61AD34', league: 'Wimbledon', time: '13:00 · Wed 30 Jul', match: 'N. Djokovic v C. Alcaraz', market: 'Match Winner', selections: [{name: 'DJOKOVIC', odds: 1.65}, {name: 'ALCARAZ', odds: 2.20}], target: 0 },
+            { id: 't2', sport: 'Tennis', color: '#00549A', league: 'US Open', time: '18:00 · Wed 30 Jul', match: 'J. Sinner v D. Medvedev', market: 'Match Winner', selections: [{name: 'SINNER', odds: 1.80}, {name: 'MEDVEDEV', odds: 2.00}], target: 1 },
+            { id: 't3', sport: 'Tennis', color: '#D45D2B', league: 'Roland Garros', time: '11:00 · Thu 31 Jul', match: 'I. Swiatek v A. Sabalenka', market: 'Match Winner', selections: [{name: 'SWIATEK', odds: 1.40}, {name: 'SABALENKA', odds: 2.90}], target: 0 },
+            { id: 't4', sport: 'Tennis', color: '#0078D7', league: 'Australian Open', time: '09:00 · Thu 31 Jul', match: 'C. Gauff v E. Rybakina', market: 'Match Winner', selections: [{name: 'GAUFF', odds: 2.10}, {name: 'RYBAKINA', odds: 1.70}], target: 1 },
+            { id: 't5', sport: 'Tennis', color: '#F97316', league: 'Miami Open', time: '14:00 · Fri 01 Aug', match: 'A. Zverev v S. Tsitsipas', market: 'Match Winner', selections: [{name: 'ZVEREV', odds: 1.90}, {name: 'TSITSIPAS', odds: 1.90}], target: 0 },
+            { id: 't6', sport: 'Tennis', color: '#F97316', league: 'Indian Wells', time: '16:30 · Fri 01 Aug', match: 'O. Jabeur v J. Pegula', market: 'Match Winner', selections: [{name: 'JABEUR', odds: 2.30}, {name: 'PEGULA', odds: 1.60}], target: 1 },
 
-            // CRICKET (6)
-            { id: 'c1', sport: 'Cricket', league: 'The Ashes', time: '11:00 · Wed 30 Jul', match: 'England v Australia', market: 'Match Result', selections: [{name: 'ENG', odds: 2.80}, {name: 'DRAW', odds: 3.20}, {name: 'AUS', odds: 2.20}], target: 1 },
-            { id: 'c2', sport: 'Cricket', league: 'T20 World Cup', time: '14:00 · Wed 30 Jul', match: 'India v Pakistan', market: 'Match Winner', selections: [{name: 'IND', odds: 1.60}, {name: 'PAK', odds: 2.30}], target: 0 },
-            { id: 'c3', sport: 'Cricket', league: 'IPL', time: '16:00 · Thu 31 Jul', match: 'CSK v Mumbai Indians', market: 'Match Winner', selections: [{name: 'CSK', odds: 1.90}, {name: 'MI', odds: 1.90}], target: 1 },
-            { id: 'c4', sport: 'Cricket', league: 'Test Series', time: '09:00 · Fri 01 Aug', match: 'South Africa v New Zealand', market: 'Match Result', selections: [{name: 'RSA', odds: 2.10}, {name: 'DRAW', odds: 4.50}, {name: 'NZ', odds: 2.60}], target: 0 },
-            { id: 'c5', sport: 'Cricket', league: 'Big Bash', time: '08:30 · Sat 02 Aug', match: 'Perth Scorchers v Sydney Sixers', market: 'Match Winner', selections: [{name: 'SCO', odds: 1.75}, {name: 'SIX', odds: 2.10}], target: 1 },
-            { id: 'c6', sport: 'Cricket', league: 'The Hundred', time: '18:00 · Sun 03 Aug', match: 'Oval Invincibles v London Spirit', market: 'Match Winner', selections: [{name: 'OVAL', odds: 1.85}, {name: 'LON', odds: 1.95}], target: 0 },
+            // CRICKET
+            { id: 'c1', sport: 'Cricket', color: '#F97316', league: 'The Ashes', time: '11:00 · Wed 30 Jul', match: 'England v Australia', market: 'Match Result', selections: [{name: 'ENG', odds: 2.80}, {name: 'DRAW', odds: 3.20}, {name: 'AUS', odds: 2.20}], target: 1 },
+            { id: 'c2', sport: 'Cricket', color: '#F97316', league: 'T20 World Cup', time: '14:00 · Wed 30 Jul', match: 'India v Pakistan', market: 'Match Winner', selections: [{name: 'IND', odds: 1.60}, {name: 'PAK', odds: 2.30}], target: 0 },
+            { id: 'c3', sport: 'Cricket', color: '#F97316', league: 'IPL', time: '16:00 · Thu 31 Jul', match: 'CSK v Mumbai Indians', market: 'Match Winner', selections: [{name: 'CSK', odds: 1.90}, {name: 'MI', odds: 1.90}], target: 1 },
+            { id: 'c4', sport: 'Cricket', color: '#F97316', league: 'Test Series', time: '09:00 · Fri 01 Aug', match: 'South Africa v New Zealand', market: 'Match Result', selections: [{name: 'RSA', odds: 2.10}, {name: 'DRAW', odds: 4.50}, {name: 'NZ', odds: 2.60}], target: 0 },
+            { id: 'c5', sport: 'Cricket', color: '#F97316', league: 'Big Bash', time: '08:30 · Sat 02 Aug', match: 'Perth Scorchers v Sydney Sixers', market: 'Match Winner', selections: [{name: 'SCO', odds: 1.75}, {name: 'SIX', odds: 2.10}], target: 1 },
+            { id: 'c6', sport: 'Cricket', color: '#F97316', league: 'The Hundred', time: '18:00 · Sun 03 Aug', match: 'Oval Invincibles v London Spirit', market: 'Match Winner', selections: [{name: 'OVAL', odds: 1.85}, {name: 'LON', odds: 1.95}], target: 0 },
 
-            // BASKETBALL (6)
-            { id: 'b1', sport: 'Basketball', league: 'NBA', time: '01:30 · Wed 30 Jul', match: 'Lakers v Warriors', market: 'Moneyline', selections: [{name: 'LAL', odds: 2.10}, {name: 'GSW', odds: 1.75}], target: 1 },
-            { id: 'b2', sport: 'Basketball', league: 'NBA', time: '02:00 · Wed 30 Jul', match: 'Celtics v Heat', market: 'Moneyline', selections: [{name: 'BOS', odds: 1.50}, {name: 'MIA', odds: 2.60}], target: 0 },
-            { id: 'b3', sport: 'Basketball', league: 'EuroLeague', time: '19:30 · Thu 31 Jul', match: 'Real Madrid v Olympiacos', market: 'Moneyline', selections: [{name: 'RMA', odds: 1.65}, {name: 'OLY', odds: 2.25}], target: 0 },
-            { id: 'b4', sport: 'Basketball', league: 'NBA', time: '03:00 · Fri 01 Aug', match: 'Nuggets v Suns', market: 'Moneyline', selections: [{name: 'DEN', odds: 1.85}, {name: 'PHX', odds: 1.95}], target: 1 },
-            { id: 'b5', sport: 'Basketball', league: 'NBA', time: '04:30 · Sat 02 Aug', match: 'Bucks v 76ers', market: 'Moneyline', selections: [{name: 'MIL', odds: 1.70}, {name: 'PHI', odds: 2.15}], target: 0 },
-            { id: 'b6', sport: 'Basketball', league: 'EuroLeague', time: '20:00 · Sun 03 Aug', match: 'Panathinaikos v Monaco', market: 'Moneyline', selections: [{name: 'PAN', odds: 1.90}, {name: 'MON', odds: 1.90}], target: 1 },
+            // BASKETBALL
+            { id: 'b1', sport: 'Basketball', color: '#FDB927', league: 'NBA', time: '01:30 · Wed 30 Jul', match: 'Lakers v Warriors', market: 'Moneyline', selections: [{name: 'LAL', odds: 2.10}, {name: 'GSW', odds: 1.75}], target: 1 },
+            { id: 'b2', sport: 'Basketball', color: '#007A33', league: 'NBA', time: '02:00 · Wed 30 Jul', match: 'Celtics v Heat', market: 'Moneyline', selections: [{name: 'BOS', odds: 1.50}, {name: 'MIA', odds: 2.60}], target: 0 },
+            { id: 'b3', sport: 'Basketball', color: '#F97316', league: 'EuroLeague', time: '19:30 · Thu 31 Jul', match: 'Real Madrid v Olympiacos', market: 'Moneyline', selections: [{name: 'RMA', odds: 1.65}, {name: 'OLY', odds: 2.25}], target: 0 },
+            { id: 'b4', sport: 'Basketball', color: '#1D1160', league: 'NBA', time: '03:00 · Fri 01 Aug', match: 'Nuggets v Suns', market: 'Moneyline', selections: [{name: 'DEN', odds: 1.85}, {name: 'PHX', odds: 1.95}], target: 1 },
+            { id: 'b5', sport: 'Basketball', color: '#00471B', league: 'NBA', time: '04:30 · Sat 02 Aug', match: 'Bucks v 76ers', market: 'Moneyline', selections: [{name: 'MIL', odds: 1.70}, {name: 'PHI', odds: 2.15}], target: 0 },
+            { id: 'b6', sport: 'Basketball', color: '#F97316', league: 'EuroLeague', time: '20:00 · Sun 03 Aug', match: 'Panathinaikos v Monaco', market: 'Moneyline', selections: [{name: 'PAN', odds: 1.90}, {name: 'MON', odds: 1.90}], target: 1 },
         ];
 
-        // ---------------------------------------------------------
-        // 2. RENDER ENGINE
-        // ---------------------------------------------------------
         function init() {
             renderTabs();
             renderFeeds();
@@ -206,10 +257,9 @@
             const tabsContainer = document.getElementById('sport-tabs');
             tabsContainer.innerHTML = sportsList.map(sport => {
                 const isActive = sport === currentSport;
-                const baseClass = "sport-tab shrink-0 flex items-center space-x-2 px-6 py-3 font-bold text-sm transition-colors cursor-pointer border-r border-gray-100";
-                const activeClass = isActive ? "bg-brand text-white" : "bg-white text-gray-600";
+                const baseClass = "sport-tab shrink-0 flex items-center space-x-2 px-6 py-3 font-bold text-sm transition-colors cursor-pointer border-r border-gray-100 dark:border-gray-800";
+                const activeClass = isActive ? "bg-brand text-white" : "bg-transparent text-gray-600 dark:text-gray-400";
                 const iconFilter = isActive ? "brightness-0 invert" : "grayscale opacity-70";
-                
                 return `
                     <button onclick="changeSport('${sport}')" class="${baseClass} ${activeClass}">
                         <img src="icon-${sport.toLowerCase()}.svg" alt="${sport}" class="w-4 h-4 ${iconFilter}">
@@ -228,35 +278,33 @@
         function renderFeeds() {
             const tkFeed = document.getElementById('tiktok-feed');
             const trFeed = document.getElementById('traditional-feed');
-            
             const filtered = demoFixtures.filter(f => f.sport === currentSport);
             
-            // Build TikTok HTML
             tkFeed.innerHTML = filtered.map(fixture => {
                 const sel = fixture.selections[fixture.target];
                 return `
-                <div class="h-[calc(100vh-180px)] w-full snap-always snap-center flex flex-col justify-between p-6  border-gray-100">
-                    <div class="text-center mt-4">
-                        <span class="text-xs text-gray font-semibold uppercase tracking-wider">${fixture.market}</span>
-                        <div class="text-[10px] text-white mt-1">${fixture.time}</div>
+                <div class="tiktok-card h-[calc(100vh-180px)] w-full snap-always snap-center flex flex-col justify-between p-5 box-border relative" data-color="${fixture.color}">
+                    <div class="text-center mt-2">
+                        <span class="text-xs text-gray-500 font-bold uppercase tracking-wider">${fixture.market}</span>
+                        <div class="text-[10px] text-gray-400 mt-0.5">${fixture.time}</div>
                     </div>
-                    <div class="text-center">
-                        <h2 class="text-5xl font-black mt-2 text-gray-900 break-words leading-tight">${sel.name}</h2>
-                        <span class="text-3xl font-semibold text-gray-400 mt-1">&pound;1 &rarr; <span class="font-black text-[#61AD34]">&pound;${sel.odds.toFixed(2)}</span></span>
+                    <div class="text-center my-auto">
+                        <h2 class="text-5xl font-black text-gray-900 dark:text-white break-words leading-tight transition-colors duration-300">${sel.name}</h2>
+                        <span class="text-2xl font-semibold text-gray-400 mt-2 block">&pound;1 &rarr; <span class="font-black text-[#61AD34]">&pound;${sel.odds.toFixed(2)}</span></span>
                     </div>
-                    <div class="flex justify-between items-end mb-4">
+                    <div class="flex justify-between items-end mb-2">
                         <div class="flex flex-col">
                             <div class="flex items-baseline space-x-2">
                                 <span class="text-brand font-semibold text-2xl tracking-tighter">${getFraction(sel.odds)}</span>
                                 <span class="text-sm text-gray-400 font-normal">odds</span>
                             </div>
-                            <div class="text-left mt-4">
-                                <span class="text-LG text-gray-900 font-semibold uppercase tracking-tighter">${fixture.match}</span>
-                                <div class="text-sm text-gray-400 mt-1">${fixture.time}</div>
+                            <div class="text-left mt-3">
+                                <span class="text-sm text-gray-900 dark:text-gray-200 font-bold uppercase tracking-tighter block transition-colors duration-300">${fixture.match}</span>
+                                <div class="text-xs text-gray-400 mt-0.5">${fixture.time}</div>
                             </div>
                         </div>
-                        <div class="flex flex-col items-center space-y-4">
-                            <button onclick="toggleLike(this)" class="bg-gray-50 text-gray-400 w-12 h-12 rounded-full flex flex-col items-center justify-center shadow-sm transition-colors">
+                        <div class="flex flex-col items-center space-y-3">
+                            <button onclick="toggleLike(this)" class="bg-gray-50/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-400 w-12 h-12 rounded-full flex flex-col items-center justify-center shadow-sm transition-colors">
                                 <span class="text-lg leading-none heart-icon">&hearts;</span>
                                 <span class="text-[10px] font-bold mt-1 like-count">${Math.floor(Math.random() * 150) + 12}</span>
                             </button>
@@ -269,22 +317,20 @@
                 </div>`;
             }).join('');
 
-            // Build Traditional HTML
             trFeed.innerHTML = filtered.map(fixture => {
                 const buttonsHtml = fixture.selections.map(sel => `
-                    <button onclick="placeBet(this)" data-id="${fixture.id}-${sel.name}" data-match-id="${fixture.id}" data-selection="${sel.name}" data-match="${fixture.match}" data-odds="${sel.odds}" class="bet-btn flex-1 bg-gray-50 text-gray-800 flex flex-col items-center justify-center h-16 rounded-xl transition-all">
+                    <button onclick="placeBet(this)" data-id="${fixture.id}-${sel.name}" data-match-id="${fixture.id}" data-selection="${sel.name}" data-match="${fixture.match}" data-odds="${sel.odds}" class="bet-btn flex-1 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-800 dark:text-white flex flex-col items-center justify-center h-16 rounded-xl transition-all border border-gray-100 dark:border-gray-700 shadow-sm">
                         <span class="text-[10px] font-bold text-gray-400 bet-text-inner">${sel.name}</span>
                         <span class="text-lg font-black bet-odds-inner">${getFraction(sel.odds)}</span>
                     </button>
                 `).join('');
-
                 return `
-                <div class="p-4 border-b border-gray-100">
-                    <div class="flex justify-between items-center text-xs text-gray-400 mb-4 font-semibold">
+                <div class="p-4 border-b border-gray-100/50 dark:border-gray-800/50 bg-white/40 dark:bg-gray-900/40 backdrop-blur-md transition-colors duration-300">
+                    <div class="flex justify-between items-center text-xs text-gray-500 mb-4 font-semibold">
                         <span>${fixture.league}</span>
                         <span>${fixture.time}</span>
                     </div>
-                    <div class="flex justify-center items-center px-2 font-bold text-lg mb-4">
+                    <div class="flex justify-center items-center px-2 font-bold text-lg mb-4 text-gray-900 dark:text-gray-100">
                         <span class="text-center w-full text-sm">${fixture.match}</span>
                     </div>
                     <div class="flex justify-center space-x-2 w-full">
@@ -293,26 +339,34 @@
                 </div>`;
             }).join('');
 
-            // Restore UI states for bets that are currently in the betslip
             bets.forEach(bet => {
                 document.querySelectorAll(`[data-id="${bet.id}"]`).forEach(btn => updateButtonUI(btn, true));
             });
+
+            // Observer now directly updates the CSS variable, instantly coloring all blobs
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const newColor = entry.target.getAttribute('data-color') || '#F97316';
+                        document.documentElement.style.setProperty('--team-color', newColor);
+                    }
+                });
+            }, { threshold: 0.6 });
+            
+            document.querySelectorAll('.tiktok-card').forEach(card => observer.observe(card));
         }
 
-        // ---------------------------------------------------------
-        // 3. INTERACTIVITY & LOGIC
-        // ---------------------------------------------------------
         function updateIndicator() {
             const wrapper = document.getElementById('feed-wrapper');
             const dotLeft = document.getElementById('dot-left');
             const dotRight = document.getElementById('dot-right');
             
             if (wrapper.scrollLeft > (wrapper.clientWidth / 2)) {
-                dotLeft.className = "w-1.5 h-1.5 bg-gray-300 rounded-full transition-all duration-300";
+                dotLeft.className = "w-1.5 h-1.5 bg-gray-300 dark:bg-gray-700 rounded-full transition-all duration-300";
                 dotRight.className = "w-4 h-1.5 bg-brand rounded-full transition-all duration-300";
             } else {
                 dotLeft.className = "w-4 h-1.5 bg-brand rounded-full transition-all duration-300";
-                dotRight.className = "w-1.5 h-1.5 bg-gray-300 rounded-full transition-all duration-300";
+                dotRight.className = "w-1.5 h-1.5 bg-gray-300 dark:bg-gray-700 rounded-full transition-all duration-300";
             }
         }
 
@@ -322,11 +376,11 @@
             let count = parseInt(countSpan.innerText);
             if (isLiked) {
                 btn.classList.remove('liked', 'text-orange-500', 'bg-orange-50', 'border', 'border-orange-200');
-                btn.classList.add('text-gray-400', 'bg-gray-50');
+                btn.classList.add('text-gray-400', 'bg-gray-50/80', 'dark:bg-gray-800/80');
                 countSpan.innerText = count - 1;
             } else {
                 btn.classList.add('liked', 'text-orange-500', 'bg-orange-50', 'border', 'border-orange-200');
-                btn.classList.remove('text-gray-400', 'bg-gray-50');
+                btn.classList.remove('text-gray-400', 'bg-gray-50/80', 'dark:bg-gray-800/80');
                 countSpan.innerText = count + 1;
             }
         }
@@ -346,14 +400,12 @@
                 removeBet(id);
                 return;
             }
-
             const existingMatchBet = bets.find(b => b.matchId === matchId);
             if (existingMatchBet) {
                 removeBet(existingMatchBet.id);
             }
 
             bets.push({ id, matchId, selection, match, odds });
-            
             document.querySelectorAll(`[data-id="${id}"]`).forEach(el => updateButtonUI(el, true));
             renderSlip();
         }
@@ -381,7 +433,7 @@
             if (isPlaced) {
                 btn.classList.add('placed');
                 if (isTikTok) {
-                    btn.className = "bet-btn w-14 placed bg-gray-100 text-gray-800 h-14 rounded-full flex flex-col items-center justify-center transition-all";
+                    btn.className = "bet-btn w-14 placed bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300 h-14 rounded-full flex flex-col items-center justify-center transition-all";
                     btn.innerHTML = `<span class="text-xl leading-none font-light">&#10003;</span><span class="text-[10px] font-bold mt-1 text-gray-400">Placed</span>`;
                 } else {
                     btn.className = "bet-btn flex-1 placed bg-brand text-white flex flex-col items-center justify-center h-16 rounded-xl transition-all shadow-md";
@@ -393,7 +445,7 @@
                     btn.className = "bet-btn w-14 bg-brand text-white h-14 rounded-full flex flex-col items-center justify-center shadow-md shadow-orange-200 transition-all";
                     btn.innerHTML = `<span class="text-xl leading-none bet-icon-inner">&#128184;</span><span class="text-[10px] font-bold mt-1 bet-text-inner">&pound;1 bet</span>`;
                 } else {
-                    btn.className = "bet-btn flex-1 bg-gray-50 text-gray-800 flex flex-col items-center justify-center h-16 rounded-xl transition-all";
+                    btn.className = "bet-btn flex-1 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-800 dark:text-white flex flex-col items-center justify-center h-16 rounded-xl transition-all border border-gray-100 dark:border-gray-700 shadow-sm";
                     btn.innerHTML = `<span class="text-[10px] font-bold text-gray-400 bet-text-inner">${selectionText}</span><span class="text-lg font-black bet-odds-inner">${oddsValue}</span>`;
                 }
             }
@@ -419,22 +471,21 @@
             const headerText = `&pound;${totalStake.toFixed(2)} &middot; Returns &pound;${totalReturns.toFixed(2)}`;
             document.getElementById('collapsed-returns').innerHTML = headerText;
             document.getElementById('expanded-header-returns').innerHTML = headerText;
-
             document.getElementById('total-stake-text').innerHTML = `&pound;${totalStake.toFixed(2)}`;
             document.getElementById('place-btn-stake').innerHTML = `&pound;${totalStake.toFixed(2)}`;
 
             container.innerHTML = bets.map(bet => `
-                <div class="flex justify-between items-center py-2 border-b border-gray-50">
+                <div class="flex justify-between items-center py-2 border-b border-gray-50 dark:border-gray-800">
                     <div class="flex-1">
-                        <div class="font-bold text-gray-900">${bet.selection}</div>
+                        <div class="font-bold text-gray-900 dark:text-white">${bet.selection}</div>
                         <div class="text-[10px] text-gray-400 mt-0.5">${bet.match}</div>
                     </div>
                     <div class="text-right flex items-center space-x-3">
                         <div>
-                            <div class="font-black text-gray-900">${getFraction(bet.odds)}</div>
+                            <div class="font-black text-gray-900 dark:text-white">${getFraction(bet.odds)}</div>
                             <div class="text-[10px] text-gray-400 mt-0.5">&pound;1 stake</div>
                         </div>
-                        <button onclick="removeBet('${bet.id}')" class="text-gray-300 text-lg font-light hover:text-red-400">&times;</button>
+                        <button onclick="removeBet('${bet.id}')" class="text-gray-300 dark:text-gray-600 text-lg font-light hover:text-red-400">&times;</button>
                     </div>
                 </div>
             `).join('');
