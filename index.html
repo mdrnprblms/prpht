@@ -12,7 +12,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
-            darkMode: 'class', // Enables the dark mode toggle
+            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: { sans: ['Nunito', 'sans-serif'] },
@@ -24,63 +24,168 @@
     
     <!-- CSS BLOB ANIMATIONS, GRADIENTS & NOISE -->
     <style>
+        /* This tells the browser how to animate the custom color variable smoothly */
+        @property --team-color {
+            syntax: '<color>';
+            initial-value: #F97316;
+            inherits: true;
+        }
+
         :root {
-            /* This is the master color that JS will update instantly */
             --team-color: #F97316; 
         }
         
-        @keyframes drift1 {
-            0% { transform: translate(0px, 0px) scale(1); }
-            33% { transform: translate(30px, -40px) scale(1.1); }
-            66% { transform: translate(-20px, 30px) scale(0.9); }
-            100% { transform: translate(0px, 0px) scale(1); }
+        /* ------------------------------------------------------------------
+           ORGANIC BLOB FIELD
+
+           The amorphous shapes come from SVG feTurbulence + feDisplacementMap
+           (see #warp-a / #warp-b in the body), NOT from border-radius. A
+           displacement map shreds a soft radial gradient into tendrilled,
+           non-elliptical forms the way a real fMRI activation map looks.
+
+           The filter sits on the *static container*, never on the moving blob.
+           That distinction is the whole trick: a filter region travels with its
+           element, so filtering a moving blob would freeze one warped shape and
+           slide it around. Anchoring the warp field to a fixed container and
+           drifting the blobs *through* it means each blob is re-deformed by a
+           different part of the noise every frame, so the silhouette genuinely
+           morphs. Turbulence params stay static so the noise is generated once
+           rather than recomputed per frame.
+           ------------------------------------------------------------------ */
+
+        .blob-field {
+            position: absolute;
+            inset: 0;
+            /* Expanded region + sRGB interpolation are set on the filters
+               themselves; displaced pixels would otherwise clip at the edges. */
         }
-        
-        @keyframes drift2 {
-            0% { transform: translate(0px, 0px) scale(1); }
-            50% { transform: translate(-40px, 20px) scale(0.85); }
-            100% { transform: translate(0px, 0px) scale(1); }
+
+        .field-a { filter: url(#warp-a); }
+        .field-b { filter: url(#warp-b); }
+
+        /* Long, wandering paths. Travel distance matters more than shape here:
+           the further a blob moves across the noise field, the more its
+           outline is reworked. */
+        @keyframes drift-a {
+            0%   { transform: translate(0%, 0%) scale(1); }
+            25%  { transform: translate(26%, 14%) scale(1.14); }
+            50%  { transform: translate(10%, 34%) scale(0.9); }
+            75%  { transform: translate(-18%, 12%) scale(1.08); }
+            100% { transform: translate(0%, 0%) scale(1); }
+        }
+
+        @keyframes drift-b {
+            0%   { transform: translate(0%, 0%) scale(1); }
+            33%  { transform: translate(-24%, 18%) scale(0.92); }
+            66%  { transform: translate(-8%, -22%) scale(1.16); }
+            100% { transform: translate(0%, 0%) scale(1); }
+        }
+
+        @keyframes drift-c {
+            0%   { transform: translate(0%, 0%) scale(1); }
+            40%  { transform: translate(20%, -20%) scale(1.1); }
+            70%  { transform: translate(-14%, -6%) scale(0.94); }
+            100% { transform: translate(0%, 0%) scale(1); }
         }
 
         .blob {
             position: absolute;
             border-radius: 50%;
-            filter: blur(45px); /* Reduced blur so they don't wash out entirely */
-            opacity: 0.6;
-            transition: --team-color 1s ease-in-out;
-        }
-
-        /* Blob 1: The main aura */
-        .blob-1 {
-            background: radial-gradient(circle at center, var(--team-color) 0%, transparent 70%);
-            width: 400px; height: 400px;
-            top: -5%; left: -10%;
-            animation: drift1 8s infinite ease-in-out;
-        }
-
-        /* Blob 2: The "hotspot" core (white center fading to team color) */
-        .blob-2 {
-            background: radial-gradient(circle at center, rgba(255,255,255,0.8) 0%, var(--team-color) 35%, transparent 75%);
-            width: 300px; height: 300px;
-            top: 20%; right: -10%;
-            animation: drift2 6s infinite ease-in-out;
+            /* Source shape is a plain soft circle on purpose - the warp filter
+               is what destroys the circularity. */
             opacity: 0.8;
+            transition: --team-color 0.8s ease-in-out;
+            will-change: transform;
         }
 
-        /* Blob 3: A supporting bottom highlight */
-        .blob-3 {
-            background: radial-gradient(circle at center, var(--team-color) 0%, transparent 65%);
-            width: 350px; height: 350px;
-            bottom: -5%; left: 15%;
-            animation: drift1 10s infinite ease-in-out reverse;
+        .dark .blob { opacity: 0.55; }
+
+        /* Main base color blob */
+        .blob-1 {
+            background: radial-gradient(circle at center, var(--team-color) 2%, transparent 42%);
+            width: 80vw; height: 80vw;
+            max-width: 380px; max-height: 380px;
+            top: 2%; left: -12%;
+            animation: drift-a 13s infinite ease-in-out;
         }
-        
-        /* Dark mode tweaks for the blobs so they stay vibrant */
-        .dark .blob { opacity: 0.4; }
-        .dark .blob-2 { background: radial-gradient(circle at center, rgba(255,255,255,0.4) 0%, var(--team-color) 40%, transparent 75%); }
+
+        /* Bright core hotspot (White fading to team color) */
+        .blob-2 {
+            background: radial-gradient(circle at center, rgba(255,255,255,0.9) 0%, var(--team-color) 16%, transparent 44%);
+            width: 62vw; height: 62vw;
+            max-width: 300px; max-height: 300px;
+            top: 18%; right: -18%;
+            animation: drift-b 10s infinite ease-in-out;
+            animation-delay: -4s;
+        }
+
+        .dark .blob-2 {
+            background: radial-gradient(circle at center, rgba(255,255,255,0.4) 0%, var(--team-color) 22%, transparent 44%);
+        }
+
+        /* Third supporting blob */
+        .blob-3 {
+            background: radial-gradient(circle at center, var(--team-color) 0%, transparent 40%);
+            width: 68vw; height: 68vw;
+            max-width: 330px; max-height: 330px;
+            bottom: 6%; left: 8%;
+            animation: drift-c 16s infinite ease-in-out;
+            animation-delay: -6s;
+        }
+
+        /* The bet slip belongs to the traditional feed only. id+class specificity
+           beats Tailwind's `flex` display utility, which a plain `hidden` class
+           could lose to depending on CDN rule order. */
+        #collapsed-slip.slip-hidden { display: none; }
+
+        /* Displacement is heavy on low-end GPUs and the drift is decorative. */
+        @media (prefers-reduced-motion: reduce) {
+            .blob { animation: none; }
+        }
     </style>
 </head>
 <body class="bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans h-screen flex flex-col relative overflow-hidden transition-colors duration-300">
+
+    <!-- Warp filters for the background blob fields.
+         color-interpolation-filters="sRGB" is required: the linearRGB default
+         washes the team colours out. The oversized filter region gives the
+         displaced pixels somewhere to go instead of clipping at the edges. -->
+    <svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+        <defs>
+            <filter id="warp-a" x="-35%" y="-35%" width="170%" height="170%" color-interpolation-filters="sRGB">
+                <feTurbulence type="fractalNoise" baseFrequency="0.0055 0.009" numOctaves="4" seed="7" result="noise"/>
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="260" xChannelSelector="R" yChannelSelector="G" result="warped"/>
+                <feGaussianBlur in="warped" stdDeviation="14"/>
+            </filter>
+            <filter id="warp-b" x="-35%" y="-35%" width="170%" height="170%" color-interpolation-filters="sRGB">
+                <feTurbulence type="fractalNoise" baseFrequency="0.008 0.0045" numOctaves="3" seed="23" result="noise"/>
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="200" xChannelSelector="G" yChannelSelector="B" result="warped"/>
+                <feGaussianBlur in="warped" stdDeviation="18"/>
+            </filter>
+            <symbol id="icon-like" viewBox="0 0 124.61 113.09">
+                <g>
+    <path d="M34.71.08c4.41-.32,8.87.32,13.07,1.71,4.31,1.35,8.2,3.98,12.09,4.42,4.45.65,8.64-1.46,12.64-3.19,26.32-12.01,55.83,14.2,51.7,41.68-1.77,13-9.95,22.19-18.62,31.3-9.83,10.53-23.22,23.99-31.24,31.18-3.07,2.71-6.39,5.34-10.58,5.82-6.3.86-11.13-4.12-15.08-8.38-11.99-12.56-30.05-26.82-40.32-41.1C-10.77,40.52,5,2.73,34.52.09h.2ZM33.53,17.16c-11.81,2.22-18.59,15.5-16.7,26.79,1,6.24,4.44,10.74,9.35,16.24,8.09,8.94,19.83,18.78,27.62,26.9,1.84,1.87,4.24,4.48,5.94,5.71,2.36,1.98,4.68.69,6.52-1.17,2.1-2.06,5.1-5.19,8.59-8.73,7.52-7.68,16.65-17.01,23.87-24.39,4.83-4.57,7.84-9.35,8.7-15.97,2.13-14.33-10.78-29.09-25.1-24.93-4.75,1.23-8.81,4.67-12.64,7.46-2.59,1.84-5.3,3.09-7.99,2.93-4.79-.24-8.52-4.19-12.77-7.14-4.35-3.16-9.87-4.81-15.22-3.74l-.19.04Z"/>
+  </g>
+            </symbol>
+            <symbol id="icon-bet" viewBox="0 0 586.64 487.48">
+                <g>
+    <g>
+      <path d="M560.57,106.78c-11.94,13.58-28.01,23.84-46.8,23.31-5.1-.06-13.62.19-14.4,6.36.43,9.97,21.31,7.13,27.96,5.84,7.32-1.45,14.36-4.04,20.94-7.54,2.89-1.38,8.77-5.42,9.32.09-2.73,28.73-34.52,49.39-62.56,46.98-4.71-.12-11.38-.48-14.21,3.37-1.79,2.32-.81,5.52,1.41,7.2,8.09,5.77,27.13,2.7,36.72.53,4.59-.89,11.36-3.99,12.02,1.32-3.67,22.62-26.8,42.05-48.79,45.15-7.94,1.5-16.16-1.68-24-1.2-8.34.92-8.01,8.74-.78,11.64,3.59,1.59,7.78,2.32,11.73,2.75,5.06.61,10.33.21,12.9,1.28,2.63.99,2.33,3.43,1.15,6.01-12,23.71-49.45,40.49-75.64,34.61-4.85-3.13.7-10.2,2.32-14.51,1.79-3.83,3.43-7.72,4.88-11.76,17.4-48.34,8.01-102.26-23.75-142.22-2.55-3.25-5.9-7.39-3.51-11.35,31.82-30.99,86.51-13.91,126.14-25.66,6.42-1.76,12.71-4.08,18.77-6.78,12.24-5.45,23.65-12.51,34.32-20.6,5.17-3.72,9.79-8.25,14.96-11.92,7.52-4.46,4.45,9.1,3.7,12.7-3.82,16.85-13.01,31.46-24.68,44.25l-.14.15Z"/>
+      <path d="M3.51.02c2.49.63,4.54,3.69,7.1,6.85,2.69,3.49,5.54,6.74,8.45,9.76,20.41,21.27,45.97,38.11,75.01,44.76,8.89,2.03,18.08,2.22,26.99,4.06,21.42,4.35,43.97,11.14,60,25.96,4.02,3.52,6.71,8.8,2.67,13.51-1.15,1.52-2.74,3-4.33,4.45-6.54,5.9-12.66,12.32-17.98,19.28-29.51,38.29-37.62,90.15-22.76,136.11,1.68,7.13-3.7,7.92-9.23,6.95-25.6-4.02-48.01-18.26-59.69-41.4-3.93-7.82-3.89-12.62,6.12-10.94,6.19.95,25.73,2.8,25.54-6.83-.94-4.96-8.44-5.74-13.12-5.71-26.65,1.87-51.94-21.94-56.43-47.91-1.74-10.78,2.7-10.34,10.94-6.56,9.92,4.08,22.54,8.46,31.69,8.1,10.86-.55,12.32-11.52.55-13.2-6.31-1.2-13.36-1.79-19.51-3.85-21.29-7.1-38.94-26.99-40.72-49.33-.71-9.24,2.43-9.57,8.93-4.01,9.2,7.45,19.31,12.71,31.18,14.85,4.83.74,10.87,1.8,15.17-.85,4.78-3.44,1.49-8.54-3.76-10.41-7.38-2.66-15.93-3.29-22.95-7C16.98,73.3-.68,37.02.02,7.99.15,5.14.47-.17,3.41,0l.1.02Z"/>
+      <path d="M234.21,399.3c2.75-.48,5.33,1.23,6.59,3.99,2.25,5.05.76,11.21.12,16.58-.7,4.82-1.36,9.61-1.71,14.46-.56,7.21-.63,14.95-1.44,22.28-.52,4.99-2.54,12.63-8.38,12.81-7.09-.96-6.71-10.9-6.26-16.47,1.17-13.59,3.47-27.16,4.33-40.77.33-4.7,1.34-11.7,6.59-12.85l.15-.03Z"/>
+      <path d="M185.35,441c-3.67,2.35-8.73-.94-9.64-5.27-.91-3.1-.76-6.57-.54-9.8.97-13.44,3.86-27.68,4.61-41.23.2-2.82.47-5.89,1.51-8.44,1.85-5.46,8.67-6.92,11.4-1.51,2.27,4.81.81,10.61.26,15.7-1.7,13.15-1.85,32.7-4.29,44.55-.47,2.24-1.26,4.67-3.2,5.94l-.11.07Z"/>
+      <path d="M283.54,381.46c2.62-1.68,6.49-.8,8.52,2.08,2.29,3.28,1.77,7.97,1.37,11.86-1.51,13.32-1.62,27.43-3.11,40.66-.62,5.34-1.8,13.45-7.93,14.67-2.37.36-4.74-1.12-6.05-3.51-3.41-6.91-.53-15.27.19-22.56,1.12-7.17,1.4-15.05,1.98-23.05.75-5.55.39-16.83,4.92-20.06l.12-.08Z"/>
+      <path d="M386.31,390.17c12.04-.8,6.33,18.14,5.9,25.3-1.22,8.16-1.33,16.13-1.95,24.57-.87,6-.1,19.11-7.75,19.92-6.79.17-8.11-8.51-7.48-13.92.61-8.87,2.28-18.63,3.23-27.21.43-3.84.64-7.53.87-11.45.59-5.83.08-15.54,7.02-17.19l.15-.02Z"/>
+      <path d="M333.61,477.12c-2.48,2.27-6.41,1.88-8.63-.78-2.81-3.27-2.33-8.36-1.85-12.48,1.87-14.19,1.77-28.98,3.66-43.12.66-4.8,2.47-11.72,7.85-12.58,6.7-.5,7.86,8.13,7.09,13.35-1.75,14.52-1.88,29.33-3.72,43.77-.61,4.03-1.22,8.88-4.28,11.72l-.13.11Z"/>
+      <path d="M85.69,431.07c-4.76,3.88-10.18-1.07-10.67-6.33-.78-5.69.78-11.56,1.48-17.22,2.26-12.87.89-28.09,4.61-40.86,1.76-5.28,8.26-5.87,11.22-1.2,2.19,3.51,1.57,8.35,1.15,12.39-1.54,13.66-1.48,28.35-3.22,41.72-.58,3.95-1.36,8.69-4.44,11.38l-.13.11Z"/>
+      <path d="M126.06,459.12c-5.85-4.89-1.16-18.89-1.2-25.92,1.23-7.92-.73-45.99,11.61-43.39,4.87,1.54,6.16,7.06,5.45,11.62-1.1,11.92-3.43,37.89-4.47,48.94-.26,2.53-.77,4.93-2.47,6.92-1.99,2.44-6.03,4.03-8.8,1.92l-.12-.09Z"/>
+      <path d="M432.63,418.31c6-2.58,9.38,2.57,9.03,8.31.01,5.14-.6,11.1-1.19,16.39-.96,8.22-2.15,15.78-2.45,23.88-.46,5.59-.26,12.03-3.01,16.99-2.42,4.51-8.53,4.99-10.8.16-1.83-3.89-1-8.83-.53-13.07,1.7-13.66,1.33-28.59,3.31-41.82.6-3.94,1.75-8.89,5.49-10.78l.14-.07Z"/>
+    </g>
+    <path d="M262.13,91.75c16.85,1.92,35.02,3.33,51.79,5.73,6.75,1.02,13.2,2.52,18.88,6.36,13.38,8.68,28.57,23.76,40.15,32.09,3.72,2.67,6.94,4.82,8.51,9.31,5.49,13.27,13.35,32.64,18.59,45.38,2.15,5.45,3.88,8.07,3.42,13.52-2.63,18.75-3.17,38.56-7,57.02-1.14,4.87-2.91,8.63-5.71,12.78-7.64,11.49-22.42,26.87-30.71,38.07-1.96,2.54-3.6,5.35-5.96,7.27-3.13,2.22-5.97,2.91-10.27,4.77-11.49,4.68-30.31,12.35-40.65,16.56-4.51,1.62-6.39,3.28-10.39,3.25-12.2-1.39-38.9-5.46-55.45-7.62-6.07-1-9.69-.45-13.97-4.31-9.83-7.92-34.85-26.28-47.33-36.77-1.1-1.3-1.66-2.87-2.36-4.52-4.22-10.53-15.56-37.72-21.22-51.91-1.93-4.64-.75-9.47-.18-14.42,1.5-11.5,2.29-23.71,3.74-35.36,1.19-8.28,1.85-16.52,5.86-23.81,6.07-10.9,21.32-26.8,30.87-39.02,3.1-3.81,4.74-6.96,7.75-9.79,11.62-6.58,41.18-17.01,54.45-22.96,2.34-.95,4.53-1.68,7.06-1.64h.13ZM229.28,211.85c3.01,3.71,9.49,2.34,14.15,4.5,8.56,3.43,3.06,15.71-2.01,20.29-2.01,1.92-4.34,3.52-6.78,4.87-4.59,2.55-8.85,3.8-8.7,8.83.39,4.52,1.87,10.53,5.24,13.59,2.78,2.08,6.7,1,10.17.65,4.84-.62,9.79-.97,14.63-.18,8.01,1.2,15.51,5.7,23.23,7.92,9.99,2.88,21.32,3.68,31.46,1.75,5.12-.93,5.32-5.21,4.46-9.36-.65-3.35-1.55-7.72-2.95-9.72-2.08-3.34-6.35-2.01-9.68-1.74-11.39,1.4-22.43-4.41-33.94-5.74-1.97-.28-4.98-.34-6.47-1.18-1.9-1.31,5.17-5.6,6.2-6.99,1.97-1.85,3.73-3.9,5.04-6.25,2.4-3.77,2.08-9.3,5.26-11.24,6.07-3.35,18.63,4.67,20.05-5.49.44-3.33-1.68-5.61-4.97-6.08-4.01-.8-10.35-1.31-14.52-2.08-3.6-.65-6.54-1.76-8.4-4.84-3.24-6.12-6.07-14.81-2.77-20.82,4.94-8,16.74-7.66,24.22-3.64,6.53,3.28,9.67,11.37,17.92,9.88,4.02-.85,12.74-1.33,14.47-5.48,1.52-5.43-6.29-13.01-9.96-16.34-24.91-21.44-85.98-15.45-75.13,25.74.72,3.01,1.6,5.75.91,7.43-1.57,3.43-6.78,1.6-9.77,4.1-2.25,1.69-3.01,5.13-1.44,7.5l.08.11Z"/>
+  </g>
+            </symbol>
+        </defs>
+    </svg>
 
     <header class="flex justify-between items-center p-4 border-b border-gray-100 dark:border-gray-800 w-full shrink-0 z-10 bg-white/50 dark:bg-gray-950/50 backdrop-blur-md">
         <div class="flex-1 flex items-center justify-start">
@@ -90,11 +195,8 @@
             <img src="logo.svg" alt="prpht" class="h-6" onerror="this.outerHTML='<span class=\'font-black text-brand text-xl\'>prpht</span>'">
         </div>
         <div class="flex-1 flex justify-end items-center space-x-3">
-            <!-- DARK MODE TOGGLE BUTTON -->
             <button onclick="toggleDarkMode()" class="text-gray-400 hover:text-brand transition-colors p-1">
-                <!-- Moon icon (shows in light mode) -->
                 <svg class="w-5 h-5 dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-                <!-- Sun icon (shows in dark mode) -->
                 <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
             </button>
             <div class="flex flex-col items-end">
@@ -112,14 +214,19 @@
         <span class="truncate">All bets fixed at &pound;1. You can never lose more than one pound per bet.</span>
     </div>
 
-    <!-- HORIZONTAL SWIPE WRAPPER -->
     <div class="flex-1 w-full overflow-x-auto snap-x snap-mandatory no-scrollbar relative" id="feed-wrapper" onscroll="updateIndicator()">
         
-        <!-- CSS GRADIENT BLOBS & BRAIN SCAN TEXTURE -->
+        <!-- ORGANIC (TURBULENCE-WARPED) BLOB BACKGROUND -->
         <div class="fixed inset-0 w-full h-full overflow-hidden pointer-events-none -z-10">
-            <div class="blob blob-1"></div>
-            <div class="blob blob-2"></div>
-            <div class="blob blob-3"></div>
+            <!-- Two fields with different noise seeds/scales so the blobs don't
+                 all deform in lockstep. Filter is on the field, blobs move inside. -->
+            <div class="blob-field field-a">
+                <div class="blob blob-1"></div>
+                <div class="blob blob-3"></div>
+            </div>
+            <div class="blob-field field-b">
+                <div class="blob blob-2"></div>
+            </div>
             <!-- Grain Texture Overlay -->
             <div class="absolute inset-0 opacity-10 mix-blend-overlay" style="background-image: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E&quot;);"></div>
         </div>
@@ -135,7 +242,7 @@
         <div class="w-1.5 h-1.5 bg-gray-300 dark:bg-gray-700 rounded-full transition-all duration-300" id="dot-right"></div>
     </div>
 
-    <div onclick="toggleSlip()" class="absolute bottom-0 w-full bg-brand text-white p-4 rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.1)] flex justify-between items-center cursor-pointer z-20">
+    <div id="collapsed-slip" onclick="toggleSlip()" class="slip-hidden absolute bottom-0 w-full bg-brand text-white p-4 rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.1)] flex justify-between items-center cursor-pointer z-20">
         <div class="flex items-center space-x-3">
             <div id="collapsed-count" class="bg-white text-brand font-black w-6 h-6 rounded-full flex items-center justify-center text-sm">0</div>
             <span class="font-bold text-lg">Bet Slip</span>
@@ -187,7 +294,6 @@
     </div>
 
 <script>
-        // DARK MODE TOGGLE LOGIC
         function toggleDarkMode() {
             document.documentElement.classList.toggle('dark');
         }
@@ -251,6 +357,8 @@
         function init() {
             renderTabs();
             renderFeeds();
+            // Only ran on scroll before, so the slip's initial state was never set.
+            updateIndicator();
         }
 
         function renderTabs() {
@@ -304,12 +412,12 @@
                             </div>
                         </div>
                         <div class="flex flex-col items-center space-y-3">
-                            <button onclick="toggleLike(this)" class="bg-gray-50/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-400 w-12 h-12 rounded-full flex flex-col items-center justify-center shadow-sm transition-colors">
-                                <span class="text-lg leading-none heart-icon">&hearts;</span>
+                            <button onclick="toggleLike(this)" class="text-gray-400 flex flex-col items-center justify-center transition-colors">
+                                <svg class="w-7 h-7 heart-icon" viewBox="0 0 124.61 113.09" fill="currentColor" aria-hidden="true"><use href="#icon-like"/></svg>
                                 <span class="text-[10px] font-bold mt-1 like-count">${Math.floor(Math.random() * 150) + 12}</span>
                             </button>
-                            <button onclick="placeBet(this)" data-id="${fixture.id}-${sel.name}" data-match-id="${fixture.id}" data-selection="${sel.name}" data-match="${fixture.match}" data-odds="${sel.odds}" class="bet-btn w-14 bg-brand text-white h-14 rounded-full flex flex-col items-center justify-center shadow-md shadow-orange-200 transition-all">
-                                <span class="text-xl leading-none bet-icon-inner">&#128184;</span>
+                            <button onclick="placeBet(this)" data-id="${fixture.id}-${sel.name}" data-match-id="${fixture.id}" data-selection="${sel.name}" data-match="${fixture.match}" data-odds="${sel.odds}" class="bet-btn bet-btn-tiktok text-gray-400 flex flex-col items-center justify-center transition-all">
+                                <svg class="w-10 h-8 bet-icon-inner" viewBox="0 0 586.64 487.48" fill="currentColor" aria-hidden="true"><use href="#icon-bet"/></svg>
                                 <span class="text-[10px] font-bold mt-1 bet-text-inner">&pound;1 bet</span>
                             </button>
                         </div>
@@ -343,7 +451,6 @@
                 document.querySelectorAll(`[data-id="${bet.id}"]`).forEach(btn => updateButtonUI(btn, true));
             });
 
-            // Observer now directly updates the CSS variable, instantly coloring all blobs
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
@@ -360,8 +467,17 @@
             const wrapper = document.getElementById('feed-wrapper');
             const dotLeft = document.getElementById('dot-left');
             const dotRight = document.getElementById('dot-right');
-            
-            if (wrapper.scrollLeft > (wrapper.clientWidth / 2)) {
+            const onTraditional = wrapper.scrollLeft > (wrapper.clientWidth / 2);
+
+            // Slip is traditional-feed only; the TikTok cards have their own
+            // inline bet button and the bar was crowding it.
+            document.getElementById('collapsed-slip').classList.toggle('slip-hidden', !onTraditional);
+            if (!onTraditional) {
+                // Don't leave the expanded panel orphaned over the TikTok feed.
+                document.getElementById('expanded-slip').classList.add('translate-y-full');
+            }
+
+            if (onTraditional) {
                 dotLeft.className = "w-1.5 h-1.5 bg-gray-300 dark:bg-gray-700 rounded-full transition-all duration-300";
                 dotRight.className = "w-4 h-1.5 bg-brand rounded-full transition-all duration-300";
             } else {
@@ -375,12 +491,12 @@
             const countSpan = btn.querySelector('.like-count');
             let count = parseInt(countSpan.innerText);
             if (isLiked) {
-                btn.classList.remove('liked', 'text-orange-500', 'bg-orange-50', 'border', 'border-orange-200');
-                btn.classList.add('text-gray-400', 'bg-gray-50/80', 'dark:bg-gray-800/80');
+                btn.classList.remove('liked', 'text-orange-500');
+                btn.classList.add('text-gray-400');
                 countSpan.innerText = count - 1;
             } else {
-                btn.classList.add('liked', 'text-orange-500', 'bg-orange-50', 'border', 'border-orange-200');
-                btn.classList.remove('text-gray-400', 'bg-gray-50/80', 'dark:bg-gray-800/80');
+                btn.classList.add('liked', 'text-orange-500');
+                btn.classList.remove('text-gray-400');
                 countSpan.innerText = count + 1;
             }
         }
@@ -426,15 +542,17 @@
         }
 
         function updateButtonUI(btn, isPlaced) {
-            const isTikTok = btn.classList.contains('w-14'); 
+            // Marker class, not a sizing class: the layout used to be detected via
+            // 'w-14', which broke as soon as the circular button lost its fixed size.
+            const isTikTok = btn.classList.contains('bet-btn-tiktok');
             const selectionText = btn.getAttribute('data-selection');
             const oddsValue = getFraction(parseFloat(btn.getAttribute('data-odds')));
 
             if (isPlaced) {
                 btn.classList.add('placed');
                 if (isTikTok) {
-                    btn.className = "bet-btn w-14 placed bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300 h-14 rounded-full flex flex-col items-center justify-center transition-all";
-                    btn.innerHTML = `<span class="text-xl leading-none font-light">&#10003;</span><span class="text-[10px] font-bold mt-1 text-gray-400">Placed</span>`;
+                    btn.className = "bet-btn bet-btn-tiktok placed text-gray-400 dark:text-gray-500 flex flex-col items-center justify-center transition-all";
+                    btn.innerHTML = `<span class="text-3xl leading-none font-light">&#10003;</span><span class="text-[10px] font-bold mt-1">Placed</span>`;
                 } else {
                     btn.className = "bet-btn flex-1 placed bg-brand text-white flex flex-col items-center justify-center h-16 rounded-xl transition-all shadow-md";
                     btn.innerHTML = `<span class="text-[10px] font-bold text-orange-200">${selectionText}</span><span class="text-lg font-black">&#10003;</span>`;
@@ -442,8 +560,8 @@
             } else {
                 btn.classList.remove('placed');
                 if (isTikTok) {
-                    btn.className = "bet-btn w-14 bg-brand text-white h-14 rounded-full flex flex-col items-center justify-center shadow-md shadow-orange-200 transition-all";
-                    btn.innerHTML = `<span class="text-xl leading-none bet-icon-inner">&#128184;</span><span class="text-[10px] font-bold mt-1 bet-text-inner">&pound;1 bet</span>`;
+                    btn.className = "bet-btn bet-btn-tiktok text-gray-400 flex flex-col items-center justify-center transition-all";
+                    btn.innerHTML = `<svg class="w-10 h-8 bet-icon-inner" viewBox="0 0 586.64 487.48" fill="currentColor" aria-hidden="true"><use href="#icon-bet"/></svg><span class="text-[10px] font-bold mt-1 bet-text-inner">&pound;1 bet</span>`;
                 } else {
                     btn.className = "bet-btn flex-1 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-800 dark:text-white flex flex-col items-center justify-center h-16 rounded-xl transition-all border border-gray-100 dark:border-gray-700 shadow-sm";
                     btn.innerHTML = `<span class="text-[10px] font-bold text-gray-400 bet-text-inner">${selectionText}</span><span class="text-lg font-black bet-odds-inner">${oddsValue}</span>`;
