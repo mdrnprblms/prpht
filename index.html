@@ -57,10 +57,9 @@
             inset: 0;
             width: 100%;
             height: 100%;
-            opacity: 0.85;
+            /* No opacity here: the canvas is opaque and paints the theme
+               background itself, and blob strength is applied per-pixel. */
         }
-
-        .dark #blob-canvas { opacity: 0.6; }
 
         /* The bet slip belongs to the traditional feed only. id+class specificity
            beats Tailwind's `flex` display utility, which a plain `hidden` class
@@ -277,6 +276,10 @@
             let target = [249, 115, 22];
             let current = [249, 115, 22];
 
+            const BG_LIGHT = [255, 255, 255];
+            const BG_DARK = [3, 7, 18];        // Tailwind gray-950, matches body
+            let bg = BG_LIGHT.slice();
+
             // Unsigned shifts throughout: a signed >> here skews the
             // distribution low (mean ~0.22) and the whole field falls below
             // the alpha threshold, rendering nothing.
@@ -310,9 +313,23 @@
                 if (m) target = [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)];
             }
 
+            function isDark() { return document.documentElement.classList.contains('dark'); }
+
             function frame(ts) {
                 const t = ts * 0.00007;
                 for (let i = 0; i < 3; i++) current[i] += (target[i] - current[i]) * 0.05;
+
+                // The theme background is painted BY the canvas, not left to the
+                // body. iOS Safari would not reliably repaint the propagated
+                // canvas background when the `dark` class flipped - this whole
+                // region sits behind a full-viewport fixed compositing layer, so
+                // it stayed white until switching apps forced a full repaint.
+                // Redrawing it here every frame makes going stale impossible.
+                const dark = isDark();
+                const want = dark ? BG_DARK : BG_LIGHT;
+                for (let i = 0; i < 3; i++) bg[i] += (want[i] - bg[i]) * 0.12;
+                const bR = bg[0], bG = bg[1], bB = bg[2];
+                const strength = dark ? 0.62 : 0.85;   // was the CSS opacity
                 const cr = current[0], cg = current[1], cb = current[2];
 
                 let p = 0;
@@ -326,13 +343,19 @@
                         const wy = fbm(nx * 1.25 + 4.7, ny * 1.25 - t * 0.85);
                         const v = fbm(nx + wx * 1.9 + t * 0.6, ny + wy * 1.9);
 
-                        const a = smoothstep(0.50, 0.74, v);
-                        if (a <= 0) { data[p + 3] = 0; continue; }
-                        const core = smoothstep(0.70, 0.82, v);   // bright hotspot
-                        data[p]     = cr + (255 - cr) * core * 0.75;
-                        data[p + 1] = cg + (255 - cg) * core * 0.75;
-                        data[p + 2] = cb + (255 - cb) * core * 0.75;
-                        data[p + 3] = a * 235;
+                        const a = smoothstep(0.50, 0.74, v) * strength;
+                        let r = cr, g = cg, b = cb;
+                        if (a > 0) {
+                            const core = smoothstep(0.70, 0.82, v);   // bright hotspot
+                            r += (255 - cr) * core * 0.75;
+                            g += (255 - cg) * core * 0.75;
+                            b += (255 - cb) * core * 0.75;
+                        }
+                        // Composite over the theme background; output is opaque.
+                        data[p]     = bR + (r - bR) * a;
+                        data[p + 1] = bG + (g - bG) * a;
+                        data[p + 2] = bB + (b - bB) * a;
+                        data[p + 3] = 255;
                     }
                 }
                 ctx.putImageData(img, 0, 0);
@@ -340,7 +363,11 @@
             }
 
             return {
-                start: function () { requestAnimationFrame(frame); },
+                start: function () {
+                    // Start at the right theme so a dark load doesn't flash white.
+                    bg = (isDark() ? BG_DARK : BG_LIGHT).slice();
+                    requestAnimationFrame(frame);
+                },
                 setColor: setColor
             };
         })();
