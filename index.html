@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
@@ -7,7 +7,7 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -32,7 +32,14 @@
         }
 
         :root {
-            --team-color: #F97316; 
+            --team-color: #F97316;
+
+            /* Background finish. Both are driven by BG_STYLE in the script, so
+               tune them there (or live via bgStyle({...}) in the console) -
+               these are just the values it writes to. */
+            --bg-blur: 6px;             /* post-upscale softening */
+            --bg-grain: 0.06;           /* film-grain overlay strength */
+            --bg-grain-blend: normal;   /* see #bg-grain */
         }
         
         /* ------------------------------------------------------------------
@@ -59,12 +66,79 @@
             height: 100%;
             /* No opacity here: the canvas is opaque and paints the theme
                background itself, and blob strength is applied per-pixel. */
+            filter: blur(var(--bg-blur));
+            /* Overscaled so the blur's soft edge is clipped by the parent's
+               overflow-hidden rather than fading out against the page. */
+            transform: scale(1.15);
+        }
+
+        /* Screen-resolution grain. It has to be a separate layer, not drawn into
+           the canvas: the canvas is 64px wide and upscaled, so grain drawn there
+           would be magnified into blotches instead of masking the low-res. */
+        #bg-grain {
+            position: absolute;
+            inset: 0;
+            opacity: var(--bg-grain);
+            /* NOT `overlay`: that blend is 2*backdrop*source below mid-grey, so
+               against the near-black dark theme it multiplies down to nothing
+               and the grain is invisible. `normal` reads on both themes. */
+            mix-blend-mode: var(--bg-grain-blend);
+            pointer-events: none;
         }
 
         /* The bet slip belongs to the traditional feed only. id+class specificity
            beats Tailwind's `flex` display utility, which a plain `hidden` class
            could lose to depending on CDN rule order. */
-        #collapsed-slip.slip-hidden { display: none; }
+        /* Slide the slip in/out rather than display:none-ing it, so it moves
+           like the feed indicator does. It sits at bottom:0, so translating it
+           down by its own height parks it just off-screen (body is
+           overflow-hidden, so nothing spills). */
+        #collapsed-slip {
+            transition: transform 300ms ease, opacity 300ms ease;
+        }
+
+        #collapsed-slip.slip-hidden {
+            transform: translateY(100%);
+            opacity: 0;
+            pointer-events: none;   /* not tappable while parked off-screen */
+        }
+
+        /* Quick press feedback. A keyframe rather than :active so the full
+           squish-and-return plays even on a tap too brief to hold. */
+        @keyframes tap-pop {
+            0%   { transform: scale(1); }
+            45%  { transform: scale(0.84); }
+            100% { transform: scale(1); }
+        }
+
+        .tap-pop { animation: tap-pop 200ms ease-out; }
+
+        /* The big TikTok headline. Weight lives here, not as a Tailwind
+           `font-black` class - the CDN injects its stylesheet after this one,
+           so an equal-specificity utility would win the cascade. */
+        .headline {
+            font-family: 'Michroma', sans-serif;
+            font-weight: 400;          /* Michroma ships this weight only */
+            /* Michroma is an extremely wide geometric face - the opposite of a
+               script. It needs a much smaller size or long lines blow out, and
+               slightly negative tracking to claw back some width. Set here
+               rather than as Tailwind utilities - the CDN injects after this
+               stylesheet, so an equal-specificity utility would win. */
+            font-size: 1.5rem;
+            line-height: 1.45;
+            letter-spacing: -0.03em;
+        }
+
+        /* The "£1 -> £29.00" stake line, same face as the headline. Weight is
+           declared here (and the Tailwind font-semibold/font-black removed from
+           the markup) because Michroma ships 400 only - a bolder utility would
+           make the browser synthesise a fake bold, which smears a geometric
+           face like this. */
+        .stake-line {
+            font-family: 'Michroma', sans-serif;
+            font-weight: 400;
+            letter-spacing: -0.03em;
+        }
 
     </style>
 </head>
@@ -126,8 +200,8 @@
         <!-- ORGANIC BLOB BACKGROUND (canvas - see #blob-canvas notes above) -->
         <div class="fixed inset-0 w-full h-full overflow-hidden pointer-events-none -z-10">
             <canvas id="blob-canvas"></canvas>
-            <!-- Grain Texture Overlay -->
-            <div class="absolute inset-0 opacity-10 mix-blend-overlay" style="background-image: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E&quot;);"></div>
+            <!-- Grain Texture Overlay (image built in JS so its scale is tunable) -->
+            <div id="bg-grain"></div>
         </div>
         
         <div class="flex w-[200%] h-full relative z-0">
@@ -383,9 +457,47 @@
             };
         })();
 
+        /* ----------------------------------------------------------------
+           Background finish knobs.
+
+             blur      px of softening applied after the canvas is upscaled.
+                       0 = raw low-res edges, ~12 = very soft.
+             grain     0-1 strength of the film-grain overlay.
+             grainSize feTurbulence baseFrequency. HIGHER = finer/tighter
+                       grain, lower = coarser blotches. ~1.2 is fine sand,
+                       ~0.4 is chunky.
+             grainBlend CSS blend mode. 'normal' reads on both themes;
+                       'overlay'/'soft-light' look richer in light mode but go
+                       invisible on the dark theme (they multiply into black).
+
+           Tune here, or preview live without editing by running e.g.
+             bgStyle({ blur: 10, grain: 0.16, grainSize: 1.4 })
+           in the browser console, then paste the values you like back in.
+           ---------------------------------------------------------------- */
+        const BG_STYLE = { blur: 6, grain: 0.085, grainSize: 1.2, grainBlend: 'normal' };
+
+        function grainDataUrl(freq) {
+            const svg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'>" +
+                        "<filter id='n'><feTurbulence type='fractalNoise' baseFrequency='" + freq +
+                        "' numOctaves='3' stitchTiles='stitch'/></filter>" +
+                        "<rect width='100%' height='100%' filter='url(#n)'/></svg>";
+            return 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")';
+        }
+
+        function bgStyle(patch) {
+            Object.assign(BG_STYLE, patch || {});
+            const root = document.documentElement.style;
+            root.setProperty('--bg-blur', BG_STYLE.blur + 'px');
+            root.setProperty('--bg-grain', BG_STYLE.grain);
+            root.setProperty('--bg-grain-blend', BG_STYLE.grainBlend);
+            document.getElementById('bg-grain').style.backgroundImage = grainDataUrl(BG_STYLE.grainSize);
+            return BG_STYLE;
+        }
+
         function init() {
             renderTabs();
             renderFeeds();
+            bgStyle();
             blobField.start();
             // Only ran on scroll before, so the slip's initial state was never set.
             updateIndicator();
@@ -437,8 +549,8 @@
                         <span class="text-xs text-gray-500 font-bold uppercase tracking-wider">${fixture.market}</span>
                     </div>
                     <div class="text-center my-auto px-1">
-                        <h2 class="text-3xl font-black text-gray-900 dark:text-white break-words leading-tight transition-colors duration-300">${sel.line}</h2>
-                        <span class="text-2xl font-semibold text-gray-400 mt-3 block">&pound;1 &rarr; <span class="font-black text-[#61AD34]">&pound;${sel.odds.toFixed(2)}</span></span>
+                        <h2 class="headline text-gray-900 dark:text-white break-words transition-colors duration-300">${sel.line}</h2>
+                        <span class="stake-line text-xl text-gray-400 mt-4 block">&pound;1 &rarr; <span class="text-[#61AD34]">&pound;${sel.odds.toFixed(2)}</span></span>
                     </div>
                     <div class="flex justify-between items-end mb-2">
                         <div class="flex flex-col min-w-0 pr-3">
@@ -446,7 +558,7 @@
                                 <span class="text-brand font-semibold text-2xl tracking-tighter">${getFraction(sel.odds)}</span>
                                 <span class="text-sm text-gray-400 font-normal">odds</span>
                             </div>
-                            <div class="text-left mt-3">
+                            <div class="text-left">
                                 <span class="text-sm text-gray-900 dark:text-gray-200 font-bold uppercase tracking-tighter block transition-colors duration-300">${fixture.match}</span>
                                 <div class="text-xs text-gray-400 mt-0.5">${fixture.time}</div>
                             </div>
@@ -531,7 +643,18 @@
             }
         }
 
+        // Retrigger the squish. Removing the class and forcing a reflow before
+        // re-adding it restarts the animation; without the reflow the browser
+        // coalesces remove+add into no change and it only ever plays once.
+        function pressPop(el) {
+            if (!el) return;
+            el.classList.remove('tap-pop');
+            void el.offsetWidth;
+            el.classList.add('tap-pop');
+        }
+
         function toggleLike(btn) {
+            pressPop(btn);
             const isLiked = btn.classList.contains('liked');
             const countSpan = btn.querySelector('.like-count');
             let count = parseInt(countSpan.innerText);
@@ -557,8 +680,12 @@
             const match = btn.getAttribute('data-match');
             const odds = parseFloat(btn.getAttribute('data-odds'));
 
+            // pressPop goes AFTER the UI update in both branches on purpose:
+            // updateButtonUI reassigns btn.className wholesale, which would
+            // strip the animation class if we popped first.
             if (bets.some(b => b.id === id)) {
                 removeBet(id);
+                pressPop(btn);
                 return;
             }
             const existingMatchBet = bets.find(b => b.matchId === matchId);
@@ -569,6 +696,7 @@
             bets.push({ id, matchId, selection, match, odds });
             document.querySelectorAll(`[data-id="${id}"]`).forEach(el => updateButtonUI(el, true));
             renderSlip();
+            pressPop(btn);
         }
 
         function removeBet(id) {
