@@ -54,7 +54,7 @@
             <video src="bg.mp4" autoplay loop muted playsinline class="absolute top-0 left-0 w-full h-full object-cover -z-10 opacity-50 pointer-events-none"></video>
             
             <!-- TIKTOK FEED (Takes up 1st Half) -->
-            <main id="tiktok-feed" class="w-1/2 shrink-0 h-full overflow-y-auto snap-y snap-mandatory pb-24 no-scrollbar snap-center relative">
+            <main id="tiktok-feed" class="w-1/2 shrink-0 h-full overflow-y-auto snap-y snap-mandatory no-scrollbar snap-center relative">
                 <!-- Dynamic Content Injected Here -->
             </main>
 
@@ -235,7 +235,7 @@
             tkFeed.innerHTML = filtered.map(fixture => {
                 const sel = fixture.selections[fixture.target];
                 return `
-                <div class="h-full w-full snap-always snap-center flex flex-col justify-between p-6 border-b-8 border-gray-100">
+                <div class="h-[calc(100vh-180px)] w-full snap-always snap-center flex flex-col justify-between p-6  border-gray-100">
                     <div class="text-center mt-4">
                         <span class="text-xs text-gray font-semibold uppercase tracking-wider">${fixture.market}</span>
                         <div class="text-[10px] text-white mt-1">${fixture.time}</div>
