@@ -1101,6 +1101,28 @@
 
         function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
 
+        /* ----------------------------------------------------------------
+           Avatars. Profile pictures are dp-<name>.jpg, but not everyone has
+           one, so a missing file falls back to the coloured initials disc
+           instead of a broken-image icon. The fallback runs through a real
+           function rather than inline HTML in the onerror attribute, which
+           would otherwise need three levels of nested quote escaping.
+           ---------------------------------------------------------------- */
+        function avatarHtml(who, sizeClasses) {
+            return '<img src="dp-' + esc(String(who).toLowerCase()) + '.jpg" alt=""' +
+                   ' class="' + sizeClasses + ' rounded-full object-cover shrink-0"' +
+                   ' onerror="avatarFallback(this)">';
+        }
+
+        // Generic faceless placeholder, TikTok-style, reusing the account glyph.
+        function avatarFallback(img) {
+            const span = document.createElement('span');
+            span.className = img.className.replace(/\bobject-cover\b/g, '').trim() +
+                             ' inline-flex items-center justify-center overflow-hidden bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500';
+            span.innerHTML = '<svg class="w-full h-full" viewBox="0 0 251 263" fill="currentColor" aria-hidden="true"><use href="#icon-account"/></svg>';
+            img.replaceWith(span);
+        }
+
         let toastTimer = null;
         function showToast(msg) {
             const t = document.getElementById('toast');
@@ -1295,7 +1317,7 @@
             document.getElementById('friends-feed').innerHTML = friendsFeed.map((f, i) => `
                 <div class="h-full w-full snap-always snap-center flex flex-col justify-between p-5 box-border relative">
                     <div class="flex items-center space-x-3 mt-2">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center font-black text-white shrink-0" style="background:${esc(f.colour)}">${esc(f.initials)}</div>
+                        ${avatarHtml(f.who, 'w-10 h-10')}
                         <div class="min-w-0">
                             <div class="font-bold text-sm leading-tight">${esc(f.who)} <span class="font-normal text-gray-400">bet &pound;1</span></div>
                             <div class="text-[10px] text-gray-400">${esc(f.ago)} ago \u00B7 ${esc(f.match)}</div>
@@ -1363,7 +1385,7 @@
         function renderMessagesFeed() {
             document.getElementById('messages-feed').innerHTML = conversations.map(c => `
                 <div onclick="openThread('${esc(c.id)}')" class="flex items-center space-x-3 p-4 border-b border-gray-100/50 dark:border-gray-800/50 bg-white/40 dark:bg-gray-900/40 backdrop-blur-md cursor-pointer">
-                    <div class="w-12 h-12 rounded-full flex items-center justify-center font-black text-white shrink-0" style="background:${esc(c.colour)}">${esc(c.initials)}</div>
+                    ${avatarHtml(c.who, 'w-12 h-12')}
                     <div class="min-w-0 flex-1">
                         <div class="font-bold text-sm">${esc(c.who)}</div>
                         <div class="text-xs text-gray-400 truncate">${esc(lastLine(c))}</div>
@@ -1458,7 +1480,7 @@
             document.getElementById('share-line').textContent = data.line;
             document.getElementById('share-friends').innerHTML = conversations.map(c => `
                 <button onclick="shareTo('${esc(c.id)}')" class="flex flex-col items-center space-y-1">
-                    <span class="w-12 h-12 rounded-full flex items-center justify-center font-black text-white" style="background:${esc(c.colour)}">${esc(c.initials)}</span>
+                    ${avatarHtml(c.who, 'w-12 h-12')}
                     <span class="text-[10px] text-gray-500">${esc(c.who)}</span>
                 </button>
             `).join('');
