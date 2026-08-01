@@ -165,6 +165,20 @@
                 <path d="M58.01,87.22l.89-.27,44.87-52.14c8.4-6.46,19.19,3.05,13.81,12.09l-50.98,65.46c-4.39,4.3-11.26,4.95-16.1,1.07-7.53-9.62-18.47-19.34-25.33-29.24-8.71-12.59,7.19-26.63,19.07-13.92,4.62,4.94,8.68,10.88,13.34,15.9.26.28.38.69.43,1.06Z"/>
                 </g>
             </symbol>
+            <symbol id="icon-account" viewBox="0 0 251 263">
+                <g>
+                <g>
+                <path d="M77.5,170c-14.17,1.5-26.35,12.56-27.51,27-29.1-32.17-30.27-84.45-6.8-120.31,38.06-58.16,122.57-63.24,166.78-9.16,29.9,36.57,31.94,93.71.04,129.47-.75-9.83-8.08-20.4-17.32-24.19-2.01-.82-8.47-2.81-10.19-2.81h-15.5c26.12-27.21,16.96-72.44-18.76-85.74-52.82-19.68-93.89,45.87-55.24,85.74-4.99.38-10.6-.52-15.5,0Z"/>
+                <path d="M76.74,185.24h106.52c11.62,2.25,12.62,14.7,15.54,24.12-37.13,35.78-99.74,35.48-137.35.61,2.1-9.84,3.61-22.45,15.28-24.73Z"/>
+                <path d="M122.76,96.26c58.27-8.42,58.84,80.8.85,73.63-40.23-4.97-40.86-67.85-.85-73.63Z"/>
+                </g>
+                </g>
+            </symbol>
+            <symbol id="icon-share" viewBox="0 0 134.66 116.04">
+                <g>
+                <path d="M68.3,83.53c-1.18-.72-3.57-.48-5.21-.34-18.84,1.69-35.84,13.09-46.53,28.46-4.36,6.26-13.03,5.89-15.71-1.52-1.45-4.57-.71-10.04-.16-14.75C4.72,62.41,31.78,34.68,64.6,30.4c2.61-.51,4.42-1.46,4.89-4.05C70.09,16.78,67.86.04,77.64,0c4.4-.1,8.55,3.13,11.34,6.37,13.64,15.2,32.62,28.03,44.26,44.43,2.88,4.34,1.03,9.16-2.32,12.67-14.17,15.69-29.66,30.39-44.79,45.21-4.68,4.32-11.76,4.35-14.93-1.66-2.28-3.77-1.22-11.89-1.45-17.38-.06-2.11.27-4.93-1.34-6.04l-.1-.06Z"/>
+                </g>
+            </symbol>
         </defs>
     </svg>
 
@@ -182,8 +196,11 @@
             </button>
             <div class="flex flex-col items-end">
                 <span class="text-[10px] text-gray-400 font-bold uppercase leading-none">Balance</span>
-                <span class="text-xs leading-none font-bold dark:text-white">&pound;550.00</span>
+                <span id="balance-text" class="text-xs leading-none font-bold dark:text-white transition-colors duration-300">&pound;10.00</span>
             </div>
+            <button onclick="openAccount()" aria-label="Account" class="text-gray-400 hover:text-brand transition-colors p-1">
+                <svg class="w-5 h-5" viewBox="0 0 251 263" fill="currentColor" aria-hidden="true"><use href="#icon-account"/></svg>
+            </button>
         </div>
     </header>
 
@@ -204,18 +221,21 @@
             <div id="bg-grain"></div>
         </div>
         
-        <div class="flex w-[200%] h-full relative z-0">
-            <main id="tiktok-feed" class="w-1/2 shrink-0 h-full overflow-y-auto snap-y snap-mandatory no-scrollbar snap-center relative"></main>
-            <main id="traditional-feed" class="w-1/2 shrink-0 h-full overflow-y-auto pb-24 snap-center relative"></main>
+        <!-- Four horizontally-snapped pages. Widths are 1/PAGE_COUNT of the
+             400% track, so each main is exactly one viewport wide. -->
+        <div class="flex w-[400%] h-full relative z-0">
+            <main id="tiktok-feed" class="w-1/4 shrink-0 h-full overflow-y-auto snap-y snap-mandatory no-scrollbar snap-center relative"></main>
+            <main id="traditional-feed" class="w-1/4 shrink-0 h-full overflow-y-auto pb-24 snap-center relative"></main>
+            <main id="friends-feed" class="w-1/4 shrink-0 h-full overflow-y-auto snap-y snap-mandatory no-scrollbar snap-center relative"></main>
+            <main id="messages-feed" class="w-1/4 shrink-0 h-full overflow-y-auto pb-24 snap-center relative"></main>
         </div>
     </div>
 
     <!-- `bottom` is set from updateIndicator(): sits right at the base on the
          TikTok feed, and lifts clear of the bet slip on the traditional feed. -->
-    <div class="absolute w-full flex justify-center space-x-1.5 pb-2 pointer-events-none z-10 transition-all duration-300" style="bottom: 0.25rem" id="indicator-dots">
-        <div class="w-4 h-1.5 bg-brand rounded-full transition-all duration-300" id="dot-left"></div>
-        <div class="w-1.5 h-1.5 bg-gray-300 dark:bg-gray-700 rounded-full transition-all duration-300" id="dot-right"></div>
-    </div>
+    <!-- One dot per page; built by renderDots() so the count can't drift out of
+         sync with PAGE_COUNT the way two hardcoded dots did. -->
+    <div class="absolute w-full flex justify-center space-x-1.5 pb-2 pointer-events-none z-10 transition-all duration-300" style="bottom: 0.25rem" id="indicator-dots"></div>
 
     <div id="collapsed-slip" onclick="toggleSlip()" class="slip-hidden absolute bottom-0 w-full bg-brand text-white p-4 rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.1)] flex justify-between items-center cursor-pointer z-20">
         <div class="flex items-center space-x-3">
@@ -261,12 +281,86 @@
                 <span class="font-bold text-gray-800 dark:text-gray-200">Total stake</span>
                 <span id="total-stake-text" class="font-black text-lg text-gray-900 dark:text-white">&pound;0.00</span>
             </div>
-            <button class="w-full bg-brand text-white font-bold py-3.5 rounded-xl text-lg shadow-md">
+            <button id="place-btn" onclick="runSimulation()" class="w-full bg-brand text-white font-bold py-3.5 rounded-xl text-lg shadow-md transition-all disabled:opacity-60">
                 Place bets &middot; <span id="place-btn-stake">&pound;0.00</span>
             </button>
-            <div class="text-center text-[10px] text-gray-400 mt-3">All stakes fixed at &pound;1. Bet responsibly. 18+.</div>
+            <div id="place-btn-note" class="text-center text-[10px] text-gray-400 mt-3">All stakes fixed at &pound;1. Bet responsibly. 18+.</div>
         </div>
     </div>
+
+    <!-- ACCOUNT ------------------------------------------------------------ -->
+    <div id="account-page" class="fixed inset-0 z-[60] bg-white dark:bg-gray-950 flex flex-col transform translate-x-full transition-transform duration-300">
+        <div class="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
+            <button onclick="closeAccount()" class="text-brand font-bold text-sm">&larr; Back</button>
+            <span class="font-bold">Account</span>
+            <span class="w-12"></span>
+        </div>
+        <div class="flex-1 overflow-y-auto no-scrollbar">
+            <div class="p-5 flex items-center space-x-4 border-b border-gray-100 dark:border-gray-800">
+                <div class="w-14 h-14 rounded-full bg-brand text-white flex items-center justify-center font-black text-xl shrink-0">LP</div>
+                <div class="min-w-0">
+                    <div class="font-bold text-lg leading-tight">Luke P</div>
+                    <div class="text-xs text-gray-400">&#64;mdrnprblms &middot; Member since Jul 2026</div>
+                </div>
+            </div>
+            <div class="p-5 border-b border-gray-100 dark:border-gray-800">
+                <div class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Balance</div>
+                <div id="account-balance" class="stake-line text-4xl mt-1">&pound;10.00</div>
+                <div id="account-pl" class="text-xs font-bold mt-2 text-gray-400">Profit / loss: &pound;0.00</div>
+            </div>
+            <div class="grid grid-cols-3 border-b border-gray-100 dark:border-gray-800 text-center">
+                <div class="p-4 border-r border-gray-100 dark:border-gray-800">
+                    <div id="stat-placed" class="font-black text-2xl">0</div>
+                    <div class="text-[10px] text-gray-400 font-bold uppercase mt-1">Placed</div>
+                </div>
+                <div class="p-4 border-r border-gray-100 dark:border-gray-800">
+                    <div id="stat-won" class="font-black text-2xl text-[#61AD34]">0</div>
+                    <div class="text-[10px] text-gray-400 font-bold uppercase mt-1">Won</div>
+                </div>
+                <div class="p-4">
+                    <div id="stat-rate" class="font-black text-2xl">&ndash;</div>
+                    <div class="text-[10px] text-gray-400 font-bold uppercase mt-1">Win rate</div>
+                </div>
+            </div>
+            <div class="p-5">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-xs font-bold text-gray-500 tracking-wider uppercase">Bet history</span>
+                    <button onclick="resetAccount()" class="text-brand text-xs font-bold">Reset demo</button>
+                </div>
+                <div id="history-list" class="space-y-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MESSAGE THREAD ------------------------------------------------------ -->
+    <div id="thread-page" class="fixed inset-0 z-[60] bg-white dark:bg-gray-950 flex flex-col transform translate-x-full transition-transform duration-300">
+        <div class="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
+            <button onclick="closeThread()" class="text-brand font-bold text-sm">&larr; Back</button>
+            <span id="thread-name" class="font-bold">Thread</span>
+            <span class="w-12"></span>
+        </div>
+        <div id="thread-body" class="flex-1 overflow-y-auto no-scrollbar p-4 space-y-3"></div>
+        <div class="p-3 border-t border-gray-100 dark:border-gray-800 shrink-0 flex items-center space-x-2 pb-6">
+            <input id="thread-input" type="text" placeholder="Message..." onkeydown="if(event.key==='Enter')sendMessage()"
+                   class="flex-1 bg-gray-100 dark:bg-gray-800 rounded-full px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-brand">
+            <button onclick="sendMessage()" class="bg-brand text-white font-bold rounded-full px-5 py-2.5 text-sm">Send</button>
+        </div>
+    </div>
+
+    <!-- SHARE SHEET --------------------------------------------------------- -->
+    <div id="share-sheet" class="fixed inset-0 z-[70] hidden">
+        <div onclick="closeShare()" class="absolute inset-0 bg-black/50"></div>
+        <div class="absolute inset-x-0 bottom-0 bg-white dark:bg-gray-900 rounded-t-2xl p-5 pb-8">
+            <div class="w-10 h-1 bg-gray-300 dark:bg-gray-700 rounded-full mx-auto mb-4"></div>
+            <div class="font-bold mb-1">Share this bet</div>
+            <div id="share-line" class="text-xs text-gray-400 mb-4 truncate"></div>
+            <div id="share-friends" class="grid grid-cols-4 gap-3"></div>
+            <button onclick="closeShare()" class="w-full mt-5 py-3 rounded-xl bg-gray-100 dark:bg-gray-800 font-bold text-sm">Cancel</button>
+        </div>
+    </div>
+
+    <!-- TOAST --------------------------------------------------------------- -->
+    <div id="toast" class="fixed left-1/2 -translate-x-1/2 z-[80] px-4 py-2.5 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-bold shadow-lg opacity-0 pointer-events-none transition-all duration-300" style="bottom: 6rem"></div>
 
 <script>
         function toggleDarkMode() {
@@ -495,8 +589,15 @@
         }
 
         function init() {
+            renderDots();
+            lastPage = 0;
             renderTabs();
             renderFeeds();
+            renderFriendsFeed();
+            renderMessagesFeed();
+            renderBalance();
+            renderSlip();          // seeds the £0.00 / button label
+            renderAccount();
             bgStyle();
             blobField.start();
             // Only ran on scroll before, so the slip's initial state was never set.
@@ -505,6 +606,21 @@
 
         function renderTabs() {
             const tabsContainer = document.getElementById('sport-tabs');
+
+            // Friends/Messages aren't sport-filtered, so the strip becomes a
+            // plain title there. Same py-3 text-sm metrics as a tab, so the
+            // strip keeps its exact height and nothing reflows.
+            if (lastPage === PAGE_FRIENDS || lastPage === PAGE_MESSAGES) {
+                const label = lastPage === PAGE_FRIENDS ? 'Friends' : 'Messages';
+                const sub = lastPage === PAGE_FRIENDS ? 'What your mates are backing' : 'Bets and chat';
+                tabsContainer.innerHTML = `
+                    <div class="shrink-0 flex items-baseline space-x-2 px-6 py-3 font-bold text-sm">
+                        <span class="text-gray-900 dark:text-white">${label}</span>
+                        <span class="text-xs font-normal text-gray-400">${sub}</span>
+                    </div>`;
+                return;
+            }
+
             tabsContainer.innerHTML = sportsList.map(sport => {
                 const isActive = sport === currentSport;
                 const baseClass = "sport-tab shrink-0 flex items-center space-x-2 px-6 py-3 font-bold text-sm transition-colors cursor-pointer border-r border-gray-100 dark:border-gray-800";
@@ -544,7 +660,7 @@
             tkFeed.innerHTML = filtered.map(fixture => {
                 const sel = fixture.selections[fixture.target];
                 return `
-                <div class="tiktok-card h-[calc(100vh-180px)] w-full snap-always snap-center flex flex-col justify-between p-5 box-border relative" data-color="${fixture.color}">
+                <div class="tiktok-card h-full w-full snap-always snap-center flex flex-col justify-between p-5 box-border relative" data-color="${fixture.color}">
                     <div class="text-center mt-2">
                         <span class="text-xs text-gray-500 font-bold uppercase tracking-wider">${fixture.market}</span>
                     </div>
@@ -573,6 +689,10 @@
                             <button onclick="placeBet(this)" data-id="${fixture.id}-${sel.name}" data-match-id="${fixture.id}" data-selection="${sel.name}" data-match="${fixture.match}" data-odds="${sel.odds}" class="bet-btn bet-btn-tiktok text-gray-400 w-full flex flex-col items-center justify-center transition-all">
                                 <svg class="w-11 h-6 bet-icon-inner" viewBox="0 0 588.47 319.03" fill="currentColor" aria-hidden="true"><use href="#icon-bet"/></svg>
                                 <span class="text-[10px] font-bold mt-1 bet-text-inner">&pound;1 bet</span>
+                            </button>
+                            <button onclick="openShare(this)" data-match-id="${fixture.id}" data-selection="${esc(sel.name)}" data-match="${esc(fixture.match)}" data-odds="${sel.odds}" data-line="${esc(sel.line)}" class="text-gray-400 w-full flex flex-col items-center justify-center transition-colors">
+                                <svg class="w-6 h-6" viewBox="0 0 134.66 116.04" fill="currentColor" aria-hidden="true"><use href="#icon-share"/></svg>
+                                <span class="text-[10px] font-bold mt-1">Share</span>
                             </button>
                         </div>
                     </div>
@@ -618,11 +738,31 @@
             document.querySelectorAll('.tiktok-card').forEach(card => observer.observe(card));
         }
 
+        // Four swipeable pages. Indices are used by currentPage()/updateIndicator
+        // and must match the DOM order of the <main> elements.
+        const PAGE_COUNT = 4;
+        const PAGE_TIKTOK = 0, PAGE_TRADITIONAL = 1, PAGE_FRIENDS = 2, PAGE_MESSAGES = 3;
+        let lastPage = -1;
+
+        function currentPage() {
+            const w = document.getElementById('feed-wrapper');
+            if (!w.clientWidth) return 0;
+            // Round rather than threshold: with four pages a ">half" test would
+            // collapse everything past the midpoint onto the last page.
+            const i = Math.round(w.scrollLeft / w.clientWidth);
+            return Math.max(0, Math.min(PAGE_COUNT - 1, i));
+        }
+
+        function renderDots() {
+            document.getElementById('indicator-dots').innerHTML =
+                Array.from({ length: PAGE_COUNT }, () =>
+                    `<div class="feed-dot w-1.5 h-1.5 bg-gray-300 dark:bg-gray-700 rounded-full transition-all duration-300"></div>`
+                ).join('');
+        }
+
         function updateIndicator() {
-            const wrapper = document.getElementById('feed-wrapper');
-            const dotLeft = document.getElementById('dot-left');
-            const dotRight = document.getElementById('dot-right');
-            const onTraditional = wrapper.scrollLeft > (wrapper.clientWidth / 2);
+            const page = currentPage();
+            const onTraditional = page === PAGE_TRADITIONAL;
 
             // Slip is traditional-feed only; the TikTok cards have their own
             // inline bet button and the bar was crowding it.
@@ -630,16 +770,22 @@
             // Keep the dots off the slip bar, which only exists on feed two.
             document.getElementById('indicator-dots').style.bottom = onTraditional ? '5rem' : '0.25rem';
             if (!onTraditional) {
-                // Don't leave the expanded panel orphaned over the TikTok feed.
+                // Don't leave the expanded panel orphaned over another feed.
                 document.getElementById('expanded-slip').classList.add('translate-y-full');
             }
 
-            if (onTraditional) {
-                dotLeft.className = "w-1.5 h-1.5 bg-gray-300 dark:bg-gray-700 rounded-full transition-all duration-300";
-                dotRight.className = "w-4 h-1.5 bg-brand rounded-full transition-all duration-300";
-            } else {
-                dotLeft.className = "w-4 h-1.5 bg-brand rounded-full transition-all duration-300";
-                dotRight.className = "w-1.5 h-1.5 bg-gray-300 dark:bg-gray-700 rounded-full transition-all duration-300";
+            document.querySelectorAll('.feed-dot').forEach((d, i) => {
+                d.className = i === page
+                    ? "feed-dot w-4 h-1.5 bg-brand rounded-full transition-all duration-300"
+                    : "feed-dot w-1.5 h-1.5 bg-gray-300 dark:bg-gray-700 rounded-full transition-all duration-300";
+            });
+
+            // Swap the tab strip's contents (never its height) when the page
+            // changes. Hiding the strip outright would reflow the track
+            // mid-swipe and fight the horizontal snap.
+            if (page !== lastPage) {
+                lastPage = page;
+                renderTabs();
             }
         }
 
@@ -674,6 +820,9 @@
         }
 
         function placeBet(btn) {
+            // The slip is mid-settlement; mutating bets[] now would desync the
+            // result rows from the array the simulation is walking.
+            if (simulating) { showToast('Simulation in progress'); return; }
             const id = btn.getAttribute('data-id');
             const matchId = btn.getAttribute('data-match-id');
             const selection = btn.getAttribute('data-selection');
@@ -700,12 +849,15 @@
         }
 
         function removeBet(id) {
+            if (simulating) return;
             bets = bets.filter(b => b.id !== id);
             document.querySelectorAll(`[data-id="${id}"]`).forEach(el => updateButtonUI(el, false));
             renderSlip();
         }
 
         function clearSlip() {
+            if (simulating) return;
+            settled = false;
             bets.forEach(bet => {
                 document.querySelectorAll(`[data-id="${bet.id}"]`).forEach(el => updateButtonUI(el, false));
             });
@@ -744,6 +896,19 @@
             }
         }
 
+        // Rebuilds the button's inner markup rather than just writing the stake
+        // span: runSimulation() sets btn.textContent, which destroys that span,
+        // so anything assuming it still exists would hit null after a run.
+        function resetPlaceButton(totalStake) {
+            const btn = document.getElementById('place-btn');
+            const note = document.getElementById('place-btn-note');
+            if (!btn || simulating || settled) return;   // leave live/settled UI alone
+            btn.disabled = false;
+            btn.innerHTML = 'Place bets &middot; <span id="place-btn-stake">' + money(totalStake) + '</span>';
+            note.className = 'text-center text-[10px] text-gray-400 mt-3';
+            note.textContent = 'All stakes fixed at £1. Bet responsibly. 18+.';
+        }
+
         function renderSlip() {
             const container = document.getElementById('slip-bets-container');
             const accaBlock = document.getElementById('acca-block');
@@ -765,20 +930,21 @@
             document.getElementById('collapsed-returns').innerHTML = headerText;
             document.getElementById('expanded-header-returns').innerHTML = headerText;
             document.getElementById('total-stake-text').innerHTML = `&pound;${totalStake.toFixed(2)}`;
-            document.getElementById('place-btn-stake').innerHTML = `&pound;${totalStake.toFixed(2)}`;
+            resetPlaceButton(totalStake);
 
             container.innerHTML = bets.map(bet => `
-                <div class="flex justify-between items-center py-2 border-b border-gray-50 dark:border-gray-800">
-                    <div class="flex-1">
-                        <div class="font-bold text-gray-900 dark:text-white">${bet.selection}</div>
-                        <div class="text-[10px] text-gray-400 mt-0.5">${bet.match}</div>
+                <div class="slip-row flex justify-between items-center py-2 border-b border-gray-50 dark:border-gray-800 transition-colors" data-slip-id="${esc(bet.id)}">
+                    <div class="flex-1 min-w-0 pr-2">
+                        <div class="font-bold text-gray-900 dark:text-white truncate">${bet.selection}</div>
+                        <div class="text-[10px] text-gray-400 mt-0.5 truncate">${bet.match}</div>
                     </div>
-                    <div class="text-right flex items-center space-x-3">
-                        <div>
+                    <div class="text-right flex items-center space-x-3 shrink-0">
+                        <div class="slip-status hidden text-right"></div>
+                        <div class="slip-odds">
                             <div class="font-black text-gray-900 dark:text-white">${getFraction(bet.odds)}</div>
                             <div class="text-[10px] text-gray-400 mt-0.5">&pound;1 stake</div>
                         </div>
-                        <button onclick="removeBet('${bet.id}')" class="text-gray-300 dark:text-gray-600 text-lg font-light hover:text-red-400">&times;</button>
+                        <button onclick="removeBet('${esc(bet.id)}')" class="slip-remove text-gray-300 dark:text-gray-600 text-lg font-light hover:text-red-400">&times;</button>
                     </div>
                 </div>
             `).join('');
@@ -793,6 +959,424 @@
                 accaBlock.classList.add('hidden');
                 accaBlock.classList.remove('flex');
             }
+        }
+
+
+        /* ================================================================
+           DEMO STATE: balance, settlement simulation, account, social
+           ================================================================ */
+
+        let balance = 10.00;
+        const STARTING_BALANCE = 10.00;
+        let betHistory = [];
+        let simulating = false;   // blocks slip mutation mid-settlement
+        let settled = false;      // slip is showing results; next tap clears
+
+        function esc(v) {
+            return String(v)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+        let toastTimer = null;
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.style.opacity = '1';
+            t.style.transform = 'translate(-50%, 0)';
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => { t.style.opacity = '0'; }, 1900);
+        }
+
+        function money(n) { return '\u00A3' + n.toFixed(2); }
+
+        function renderBalance() {
+            document.getElementById('balance-text').textContent = money(balance);
+            const ab = document.getElementById('account-balance');
+            if (ab) ab.textContent = money(balance);
+        }
+
+        /* ---------------------------------------------------------------
+           SETTLEMENT SIMULATION
+           Each leg resolves on a coin flip, one at a time, so the slip reads
+           like a live results feed. An acca only pays if every leg landed.
+           --------------------------------------------------------------- */
+        async function runSimulation() {
+            if (simulating) return;
+            if (settled) { clearSlip(); return; }      // "Bet again"
+            if (bets.length === 0) { showToast('Add a bet first'); return; }
+
+            const legs = bets.slice();                  // snapshot; bets[] may change later
+            const hasAcca = legs.length > 1;
+            const accaOdds = legs.reduce((prod, b) => prod * b.odds, 1);
+            const totalStake = legs.length + (hasAcca ? 1 : 0);
+
+            if (totalStake > balance + 1e-9) {
+                showToast('Not enough balance for ' + money(totalStake));
+                return;
+            }
+
+            simulating = true;
+            const btn = document.getElementById('place-btn');
+            btn.disabled = true;
+            btn.textContent = 'Simulating\u2026';
+            document.querySelectorAll('.slip-remove').forEach(b => b.classList.add('hidden'));
+
+            balance -= totalStake;
+            renderBalance();
+
+            let returned = 0;
+            const outcomes = [];
+
+            for (const leg of legs) {
+                await wait(1100);
+                const won = Math.random() < 0.5;
+                outcomes.push(won);
+                const ret = won ? leg.odds : 0;
+                returned += ret;
+                if (won) { balance += ret; renderBalance(); }
+                markSlipRow(leg.id, won, ret);
+                betHistory.unshift({
+                    label: leg.selection, match: leg.match, odds: leg.odds,
+                    stake: 1, won: won, returns: ret, type: 'Single', when: Date.now()
+                });
+            }
+
+            if (hasAcca) {
+                await wait(1100);
+                const accaWon = outcomes.every(Boolean);
+                const ret = accaWon ? accaOdds : 0;
+                returned += ret;
+                if (accaWon) { balance += ret; renderBalance(); }
+                markAcca(accaWon, ret);
+                betHistory.unshift({
+                    label: legs.length + '-fold Accumulator',
+                    match: legs.map(l => l.selection).join(' / '),
+                    odds: accaOdds, stake: 1, won: accaWon, returns: ret,
+                    type: 'Acca', when: Date.now()
+                });
+            }
+
+            const net = returned - totalStake;
+            simulating = false;
+            settled = true;
+            btn.disabled = false;
+            btn.textContent = 'Bet again';
+            const note = document.getElementById('place-btn-note');
+            note.className = 'text-center text-xs font-bold mt-3 ' +
+                (net >= 0 ? 'text-[#61AD34]' : 'text-red-500');
+            note.textContent = net >= 0
+                ? 'You won ' + money(returned) + ' \u00B7 up ' + money(net)
+                : 'Lost ' + money(Math.abs(net)) + ' \u00B7 returned ' + money(returned);
+            showToast(net >= 0 ? 'Up ' + money(net) + '!' : 'Down ' + money(Math.abs(net)));
+            renderAccount();
+        }
+
+        function markSlipRow(id, won, ret) {
+            const row = document.querySelector('.slip-row[data-slip-id="' + CSS.escape(id) + '"]');
+            if (!row) return;
+            row.classList.add(won ? 'bg-green-50' : 'bg-red-50', 'dark:bg-transparent');
+            const odds = row.querySelector('.slip-odds');
+            if (odds) odds.classList.add('hidden');
+            const st = row.querySelector('.slip-status');
+            if (!st) return;
+            st.classList.remove('hidden');
+            st.innerHTML = won
+                ? '<div class="font-black text-[#61AD34]">WON</div><div class="text-[10px] text-[#61AD34] mt-0.5">+' + money(ret) + '</div>'
+                : '<div class="font-black text-red-500">LOST</div><div class="text-[10px] text-gray-400 mt-0.5">-' + money(1) + '</div>';
+        }
+
+        function markAcca(won, ret) {
+            const block = document.getElementById('acca-block');
+            if (!block || block.classList.contains('hidden')) return;
+            document.getElementById('acca-returns').innerHTML = won
+                ? '<span class="text-[#61AD34] font-black">WON ' + money(ret) + '</span>'
+                : '<span class="text-red-500 font-black">LOST</span>';
+        }
+
+        /* ---------------------------------------------------------------
+           ACCOUNT
+           --------------------------------------------------------------- */
+        function openAccount() {
+            renderAccount();
+            document.getElementById('account-page').classList.remove('translate-x-full');
+        }
+        function closeAccount() {
+            document.getElementById('account-page').classList.add('translate-x-full');
+        }
+
+        function renderAccount() {
+            renderBalance();
+            const placed = betHistory.length;
+            const won = betHistory.filter(h => h.won).length;
+            const staked = betHistory.reduce((s, h) => s + h.stake, 0);
+            const returned = betHistory.reduce((s, h) => s + h.returns, 0);
+            const pl = returned - staked;
+
+            document.getElementById('stat-placed').textContent = placed;
+            document.getElementById('stat-won').textContent = won;
+            document.getElementById('stat-rate').textContent =
+                placed ? Math.round((won / placed) * 100) + '%' : '\u2013';
+
+            const plEl = document.getElementById('account-pl');
+            plEl.className = 'text-xs font-bold mt-2 ' +
+                (placed === 0 ? 'text-gray-400' : pl >= 0 ? 'text-[#61AD34]' : 'text-red-500');
+            plEl.textContent = 'Profit / loss: ' + (pl >= 0 ? '+' : '-') + money(Math.abs(pl));
+
+            const list = document.getElementById('history-list');
+            if (!placed) {
+                list.innerHTML = '<div class="text-sm text-gray-400 py-6 text-center">No settled bets yet. Place a slip and hit simulate.</div>';
+                return;
+            }
+            list.innerHTML = betHistory.map(h => `
+                <div class="flex justify-between items-center p-3 rounded-lg bg-gray-50 dark:bg-gray-900">
+                    <div class="min-w-0 pr-3">
+                        <div class="font-bold text-sm truncate">${esc(h.label)}</div>
+                        <div class="text-[10px] text-gray-400 truncate">${esc(h.type)} \u00B7 ${esc(h.match)}</div>
+                    </div>
+                    <div class="text-right shrink-0">
+                        <div class="font-black text-sm ${h.won ? 'text-[#61AD34]' : 'text-red-500'}">${h.won ? 'WON' : 'LOST'}</div>
+                        <div class="text-[10px] text-gray-400">${h.won ? '+' + money(h.returns) : '-' + money(h.stake)}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function resetAccount() {
+            if (simulating) return;
+            balance = STARTING_BALANCE;
+            betHistory = [];
+            settled = false;
+            bets.forEach(bet => {
+                document.querySelectorAll('[data-id="' + CSS.escape(bet.id) + '"]').forEach(el => updateButtonUI(el, false));
+            });
+            bets = [];
+            renderSlip();
+            renderAccount();
+            showToast('Demo reset');
+        }
+
+        /* ---------------------------------------------------------------
+           FRIENDS FEED
+           --------------------------------------------------------------- */
+        const friendsFeed = [
+            { who: 'Simon',  initials: 'S',  colour: '#EF0107', ago: '2m',  matchId: 'f1', selection: 'Arsenal',        match: 'Arsenal v Chelsea',        odds: 2.10, line: 'Arsenal to beat Chelsea within 90 minutes', note: 'they are unreal at home right now' },
+            { who: 'Priya',  initials: 'P',  colour: '#6CABDD', ago: '11m', matchId: 'y2', selection: 'Haaland hat-trick', match: 'Man City v Liverpool',   odds: 41.00, line: 'Haaland to score a hat-trick and Manchester City to win 4-0', note: 'one pound to change my life' },
+            { who: 'Dee',    initials: 'D',  colour: '#F97316', ago: '24m', matchId: 'r4', selection: 'Corach Rambler',  match: 'Grand National',           odds: 6.00, line: 'Corach Rambler to win the Grand National', note: 'dad had a dream about this horse' },
+            { who: 'Marcus', initials: 'M',  colour: '#61AD34', ago: '38m', matchId: 't1', selection: 'Djokovic',        match: 'Djokovic v Alcaraz',       odds: 1.65, line: 'Novak Djokovic to beat Carlos Alcaraz at Wimbledon', note: 'never bet against the man' },
+            { who: 'Aoife',  initials: 'A',  colour: '#004170', ago: '1h',  matchId: 'y8', selection: 'Keeper to score', match: 'PSG v Marseille',          odds: 66.00, line: 'Any goalkeeper to score and the match to finish level', note: 'absolutely no notes. just vibes' },
+            { who: 'Tom',    initials: 'T',  colour: '#DC052D', ago: '2h',  matchId: 'f4', selection: 'Dortmund',        match: 'Bayern Munich v Dortmund',  odds: 5.00, line: 'Dortmund to win Der Klassiker in Munich', note: 'value is value' },
+        ];
+
+        function renderFriendsFeed() {
+            document.getElementById('friends-feed').innerHTML = friendsFeed.map((f, i) => `
+                <div class="h-full w-full snap-always snap-center flex flex-col justify-between p-5 box-border relative">
+                    <div class="flex items-center space-x-3 mt-2">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center font-black text-white shrink-0" style="background:${esc(f.colour)}">${esc(f.initials)}</div>
+                        <div class="min-w-0">
+                            <div class="font-bold text-sm leading-tight">${esc(f.who)} <span class="font-normal text-gray-400">bet &pound;1</span></div>
+                            <div class="text-[10px] text-gray-400">${esc(f.ago)} ago \u00B7 ${esc(f.match)}</div>
+                        </div>
+                    </div>
+                    <div class="text-center my-auto px-1">
+                        <h2 class="headline text-gray-900 dark:text-white break-words">${esc(f.line)}</h2>
+                        <span class="stake-line text-xl text-gray-400 mt-4 block">&pound;1 &rarr; <span class="text-[#61AD34]">${money(f.odds)}</span></span>
+                        <div class="text-sm text-gray-400 italic mt-4">&ldquo;${esc(f.note)}&rdquo;</div>
+                    </div>
+                    <div class="flex items-center space-x-3 mb-2">
+                        <button onclick="copyBet(${i}, this)" class="flex-1 bg-brand text-white font-bold py-3 rounded-xl text-sm shadow-md">Copy bet</button>
+                        <button onclick="shareFromFriends(${i}, this)" class="w-14 h-12 flex items-center justify-center rounded-xl border border-gray-200 dark:border-gray-700 text-gray-400">
+                            <svg class="w-5 h-5" viewBox="0 0 134.66 116.04" fill="currentColor" aria-hidden="true"><use href="#icon-share"/></svg>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function copyBet(i, btn) {
+            pressPop(btn);
+            if (simulating) { showToast('Simulation in progress'); return; }
+            if (settled) { showToast('Tap "Bet again" to start a new slip'); return; }
+            const f = friendsFeed[i];
+            const id = f.matchId + '-' + f.selection;
+            if (bets.some(b => b.id === id)) { showToast('Already in your slip'); return; }
+            const clash = bets.find(b => b.matchId === f.matchId);
+            if (clash) removeBet(clash.id);
+            bets.push({ id: id, matchId: f.matchId, selection: f.selection, match: f.match, odds: f.odds });
+            document.querySelectorAll('[data-id="' + CSS.escape(id) + '"]').forEach(el => updateButtonUI(el, true));
+            renderSlip();
+            showToast('Copied ' + f.who + "'s bet");
+        }
+
+        /* ---------------------------------------------------------------
+           MESSAGES
+           --------------------------------------------------------------- */
+        let conversations = [
+            { id: 'm1', who: 'Simon', initials: 'S', colour: '#EF0107', msgs: [
+                { from: 'them', text: 'you seeing this Arsenal price?', t: '09:12' },
+                { from: 'them', kind: 'bet', matchId: 'f1', selection: 'Arsenal', match: 'Arsenal v Chelsea', odds: 2.10, line: 'Arsenal to beat Chelsea within 90 minutes', t: '09:12' },
+                { from: 'me', text: 'go on then', t: '09:15' }
+            ]},
+            { id: 'm2', who: 'Priya', initials: 'P', colour: '#6CABDD', msgs: [
+                { from: 'them', text: 'put a quid on this and retire', t: '08:40' },
+                { from: 'them', kind: 'bet', matchId: 'y2', selection: 'Haaland hat-trick', match: 'Man City v Liverpool', odds: 41.00, line: 'Haaland to score a hat-trick and Manchester City to win 4-0', t: '08:40' }
+            ]},
+            { id: 'm3', who: 'Dee', initials: 'D', colour: '#F97316', msgs: [
+                { from: 'me', text: 'grand national shout?', t: 'Yesterday' },
+                { from: 'them', text: 'corach rambler. trust me', t: 'Yesterday' }
+            ]},
+            { id: 'm4', who: 'Marcus', initials: 'M', colour: '#61AD34', msgs: [
+                { from: 'them', text: 'wimbledon final is free money', t: 'Yesterday' }
+            ]}
+        ];
+        let activeThread = null;
+
+        function lastLine(c) {
+            const m = c.msgs[c.msgs.length - 1];
+            if (!m) return '';
+            return m.kind === 'bet' ? '\uD83C\uDFAF ' + m.line : m.text;
+        }
+
+        function renderMessagesFeed() {
+            document.getElementById('messages-feed').innerHTML = conversations.map(c => `
+                <div onclick="openThread('${esc(c.id)}')" class="flex items-center space-x-3 p-4 border-b border-gray-100/50 dark:border-gray-800/50 bg-white/40 dark:bg-gray-900/40 backdrop-blur-md cursor-pointer">
+                    <div class="w-12 h-12 rounded-full flex items-center justify-center font-black text-white shrink-0" style="background:${esc(c.colour)}">${esc(c.initials)}</div>
+                    <div class="min-w-0 flex-1">
+                        <div class="font-bold text-sm">${esc(c.who)}</div>
+                        <div class="text-xs text-gray-400 truncate">${esc(lastLine(c))}</div>
+                    </div>
+                    <div class="text-[10px] text-gray-400 shrink-0">${esc(c.msgs[c.msgs.length - 1] ? c.msgs[c.msgs.length - 1].t : '')}</div>
+                </div>
+            `).join('');
+        }
+
+        function openThread(id) {
+            activeThread = conversations.find(c => c.id === id) || null;
+            if (!activeThread) return;
+            document.getElementById('thread-name').textContent = activeThread.who;
+            renderThread();
+            document.getElementById('thread-page').classList.remove('translate-x-full');
+        }
+        function closeThread() {
+            document.getElementById('thread-page').classList.add('translate-x-full');
+            renderMessagesFeed();
+        }
+
+        function renderThread() {
+            if (!activeThread) return;
+            const body = document.getElementById('thread-body');
+            body.innerHTML = activeThread.msgs.map((m, i) => {
+                const mine = m.from === 'me';
+                const align = mine ? 'items-end' : 'items-start';
+                const bubble = mine
+                    ? 'bg-brand text-white'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100';
+                if (m.kind === 'bet') {
+                    return `
+                    <div class="flex flex-col ${align}">
+                        <div class="max-w-[80%] rounded-2xl border border-brand/40 bg-white dark:bg-gray-900 p-3">
+                            <div class="text-[10px] font-bold text-brand uppercase tracking-wider">Bet</div>
+                            <div class="text-sm font-bold mt-1">${esc(m.line)}</div>
+                            <div class="text-[10px] text-gray-400 mt-1">${esc(m.match)} \u00B7 ${money(m.odds)} return</div>
+                            <button onclick="addFromMessage('${esc(activeThread.id)}', ${i}, this)" class="mt-2 w-full bg-brand text-white text-xs font-bold py-2 rounded-lg">Add to slip</button>
+                        </div>
+                        <div class="text-[10px] text-gray-400 mt-1 px-1">${esc(m.t)}</div>
+                    </div>`;
+                }
+                return `
+                    <div class="flex flex-col ${align}">
+                        <div class="max-w-[80%] rounded-2xl px-3.5 py-2 text-sm ${bubble}">${esc(m.text)}</div>
+                        <div class="text-[10px] text-gray-400 mt-1 px-1">${esc(m.t)}</div>
+                    </div>`;
+            }).join('');
+            body.scrollTop = body.scrollHeight;
+        }
+
+        function nowLabel() {
+            const d = new Date();
+            return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('thread-input');
+            const text = input.value.trim();
+            if (!text || !activeThread) return;
+            activeThread.msgs.push({ from: 'me', text: text, t: nowLabel() });
+            input.value = '';
+            renderThread();
+        }
+
+        function addFromMessage(convId, idx, btn) {
+            pressPop(btn);
+            const conv = conversations.find(c => c.id === convId);
+            if (!conv) return;
+            const m = conv.msgs[idx];
+            if (!m || m.kind !== 'bet') return;
+            if (simulating) { showToast('Simulation in progress'); return; }
+            if (settled) { showToast('Tap "Bet again" to start a new slip'); return; }
+            const id = m.matchId + '-' + m.selection;
+            if (bets.some(b => b.id === id)) { showToast('Already in your slip'); return; }
+            const clash = bets.find(b => b.matchId === m.matchId);
+            if (clash) removeBet(clash.id);
+            bets.push({ id: id, matchId: m.matchId, selection: m.selection, match: m.match, odds: m.odds });
+            document.querySelectorAll('[data-id="' + CSS.escape(id) + '"]').forEach(el => updateButtonUI(el, true));
+            renderSlip();
+            showToast('Added to slip');
+        }
+
+        /* ---------------------------------------------------------------
+           SHARE SHEET
+           --------------------------------------------------------------- */
+        let pendingShare = null;
+
+        function openShareData(data, btn) {
+            if (btn) pressPop(btn);
+            pendingShare = data;
+            document.getElementById('share-line').textContent = data.line;
+            document.getElementById('share-friends').innerHTML = conversations.map(c => `
+                <button onclick="shareTo('${esc(c.id)}')" class="flex flex-col items-center space-y-1">
+                    <span class="w-12 h-12 rounded-full flex items-center justify-center font-black text-white" style="background:${esc(c.colour)}">${esc(c.initials)}</span>
+                    <span class="text-[10px] text-gray-500">${esc(c.who)}</span>
+                </button>
+            `).join('');
+            document.getElementById('share-sheet').classList.remove('hidden');
+        }
+
+        function openShare(btn) {
+            openShareData({
+                matchId: btn.getAttribute('data-match-id'),
+                selection: btn.getAttribute('data-selection'),
+                match: btn.getAttribute('data-match'),
+                odds: parseFloat(btn.getAttribute('data-odds')),
+                line: btn.getAttribute('data-line')
+            }, btn);
+        }
+
+        function shareFromFriends(i, btn) {
+            const f = friendsFeed[i];
+            openShareData({ matchId: f.matchId, selection: f.selection, match: f.match, odds: f.odds, line: f.line }, btn);
+        }
+
+        function closeShare() {
+            document.getElementById('share-sheet').classList.add('hidden');
+            pendingShare = null;
+        }
+
+        function shareTo(convId) {
+            const conv = conversations.find(c => c.id === convId);
+            if (!conv || !pendingShare) return closeShare();
+            conv.msgs.push({
+                from: 'me', kind: 'bet', matchId: pendingShare.matchId,
+                selection: pendingShare.selection, match: pendingShare.match,
+                odds: pendingShare.odds, line: pendingShare.line, t: nowLabel()
+            });
+            const who = conv.who;
+            closeShare();
+            renderMessagesFeed();
+            if (activeThread && activeThread.id === convId) renderThread();
+            showToast('Sent to ' + who);
         }
 
         init();
