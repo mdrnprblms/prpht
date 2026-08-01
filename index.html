@@ -186,7 +186,14 @@
                 <path d="M58.01,87.22l.89-.27,44.87-52.14c8.4-6.46,19.19,3.05,13.81,12.09l-50.98,65.46c-4.39,4.3-11.26,4.95-16.1,1.07-7.53-9.62-18.47-19.34-25.33-29.24-8.71-12.59,7.19-26.63,19.07-13.92,4.62,4.94,8.68,10.88,13.34,15.9.26.28.38.69.43,1.06Z"/>
                 </g>
             </symbol>
-            <symbol id="icon-account" viewBox="0 0 251 263">
+            <!-- viewBox deliberately NOT the file's own "0 0 251 263". A <symbol>
+                 re-fits its content using ITS viewBox, which overrides whatever
+                 the consuming <svg> sets - so an off-centre, non-square box here
+                 cannot be corrected downstream. Measured from painted pixels,
+                 the artwork is 206.5x206 at (26.5, 30); this is the tight,
+                 square, centred equivalent. NOTE: re-running the symbol
+                 extractor would overwrite this back to the file's value. -->
+            <symbol id="icon-account" viewBox="26.5 30 206.5 206.5">
                 <g>
                 <g>
                 <path d="M77.5,170c-14.17,1.5-26.35,12.56-27.51,27-29.1-32.17-30.27-84.45-6.8-120.31,38.06-58.16,122.57-63.24,166.78-9.16,29.9,36.57,31.94,93.71.04,129.47-.75-9.83-8.08-20.4-17.32-24.19-2.01-.82-8.47-2.81-10.19-2.81h-15.5c26.12-27.21,16.96-72.44-18.76-85.74-52.82-19.68-93.89,45.87-55.24,85.74-4.99.38-10.6-.52-15.5,0Z"/>
@@ -220,7 +227,10 @@
                 <span id="balance-text" class="text-xs leading-none font-bold dark:text-white transition-colors duration-300">&pound;10.00</span>
             </div>
             <button onclick="openAccount()" aria-label="Account" class="text-gray-400 hover:text-brand transition-colors p-1">
-                <svg class="w-5 h-5" viewBox="0 0 251 263" fill="currentColor" aria-hidden="true"><use href="#icon-account"/></svg>
+                <!-- Origin MUST be 0 0: <use> defaults to x=0,y=0, so a non-zero
+                     viewBox origin shifts the symbol up-left by that amount.
+                     The crop lives on the symbol; consumers just size it. -->
+                <svg class="w-5 h-5" viewBox="0 0 206.5 206.5" fill="currentColor" aria-hidden="true"><use href="#icon-account"/></svg>
             </button>
         </div>
     </header>
@@ -1115,11 +1125,25 @@
         }
 
         // Generic faceless placeholder, TikTok-style, reusing the account glyph.
+        //
+        // The icon is a FILLED DISC with the person knocked out of it, not a
+        // person shape. So the span behind it supplies the figure's colour and
+        // the svg supplies the disc's - stacking the disc on another coloured
+        // circle instead produced a light disc inside a darker ring with the
+        // figure reading as a dark hole.
+        //
+        // The viewBox is bespoke, not the icon's own "0 0 251 263": that box is
+        // non-square and the artwork is not centred within it. These numbers
+        // were derived by measuring PAINTED PIXELS (an SVG getBBox reading
+        // disagreed with what actually renders) so the disc is centred and
+        // fills the circle edge to edge, leaving no ring.
         function avatarFallback(img) {
             const span = document.createElement('span');
             span.className = img.className.replace(/\bobject-cover\b/g, '').trim() +
-                             ' inline-flex items-center justify-center overflow-hidden bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500';
-            span.innerHTML = '<svg class="w-full h-full" viewBox="0 0 251 263" fill="currentColor" aria-hidden="true"><use href="#icon-account"/></svg>';
+                             ' inline-flex items-center justify-center overflow-hidden bg-white dark:bg-gray-400';
+            span.innerHTML = '<svg class="w-full h-full text-gray-300 dark:text-gray-700" ' +
+                             'viewBox="0 0 206.5 206.5" fill="currentColor" aria-hidden="true">' +
+                             '<use href="#icon-account"/></svg>';
             img.replaceWith(span);
         }
 
