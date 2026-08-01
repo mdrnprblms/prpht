@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
@@ -116,6 +116,42 @@
         /* The big TikTok headline. Weight lives here, not as a Tailwind
            `font-black` class - the CDN injects its stylesheet after this one,
            so an equal-specificity utility would win the cascade. */
+        /* Accessibility: gray-400 (#9ca3af) is fine on the near-black dark
+           theme but measured 1.9-2.3:1 on the light theme's blob-tinted cards,
+           well under the 4.5:1 AA floor. Lifting it to gray-600 in light mode
+           only keeps it visually secondary while passing. One rule rather than
+           editing ~60 utility usages; the :not(.dark) prefix outranks
+           Tailwind's own .text-gray-400 on specificity. */
+        html:not(.dark) .text-gray-400 { color: #4b5563; }
+        html:not(.dark) .text-gray-500 { color: #374151; }
+
+        /* Brand orange as TEXT measures ~2.3:1 on a white card - orange on white
+           is inherently low contrast. Darken it for light mode only. This does
+           not touch bg-brand (buttons are orange with white text and already
+           pass), just text-brand. */
+        /* #B4380B is the lightest that clears 4.5:1, but the blob field ANIMATES
+           underneath, so the card tint - and therefore the ratio - drifts. This
+           darker value keeps ~5.7:1 as headroom and matches the banner. */
+        html:not(.dark) .text-brand { color: #9A3412; }
+
+        /* Level-map "next up" orb: a ring that expands and fades, so the
+           bottom-most (soonest) fixture reads as the active node. */
+        @keyframes orb-pulse {
+            0%   { transform: scale(1);    opacity: 0.55; }
+            70%  { transform: scale(1.45); opacity: 0; }
+            100% { transform: scale(1.45); opacity: 0; }
+        }
+        .orb-pulse { animation: orb-pulse 2.4s ease-out infinite; }
+
+        /* Same face as .headline, sized for the half-height Friends pane. */
+        .headline-sm {
+            font-family: 'Michroma', sans-serif;
+            font-weight: 400;
+            font-size: 1.05rem;
+            line-height: 1.4;
+            letter-spacing: -0.03em;
+        }
+
         .headline {
             font-family: 'Michroma', sans-serif;
             font-weight: 400;          /* Michroma ships this weight only */
@@ -241,7 +277,7 @@
     <div class="relative shrink-0 z-10 border-b border-gray-100 dark:border-gray-800 bg-white/80 dark:bg-gray-950/80 backdrop-blur-md overflow-hidden">
         <!-- Width must equal 1/PAGE_COUNT: updateNavHighlight advances by
              translateX(100%), i.e. exactly one slot of its own width. -->
-        <div id="page-nav-highlight" class="absolute top-0 bottom-0 left-0 w-1/5 bg-brand" style="transform: translateX(0%)"></div>
+        <div id="page-nav-highlight" class="absolute top-0 bottom-0 left-0 w-1/4 bg-brand" style="transform: translateX(0%)"></div>
         <div id="page-nav" class="relative flex"></div>
     </div>
 
@@ -253,7 +289,7 @@
         </div>
     </div>
 
-    <div class="bg-[#FFF8F0]/90 dark:bg-gray-900/90 backdrop-blur-md text-[#E85D04] text-xs font-semibold p-3 flex items-center space-x-2 border-b border-[#FFE5D0] dark:border-gray-800 shrink-0 z-10 transition-colors duration-300">
+    <div class="bg-[#FFF8F0]/90 dark:bg-gray-900/90 backdrop-blur-md text-[#9A3412] dark:text-[#E85D04] text-xs font-semibold p-3 flex items-center space-x-2 border-b border-[#FFE5D0] dark:border-gray-800 shrink-0 z-10 transition-colors duration-300">
         <span class="w-1.5 h-1.5 bg-[#E85D04] rounded-full inline-block shrink-0"></span>
         <span class="truncate">All bets fixed at &pound;1. You can never lose more than one pound per bet.</span>
     </div>
@@ -271,12 +307,23 @@
              400% track, so each main is exactly one viewport wide. -->
         <!-- DOM order IS the page order: Messages, Friends, For You, Betslip.
              Must stay in sync with the PAGES array and the PAGE_* constants. -->
-        <div class="flex w-[500%] h-full relative z-0">
-            <main id="messages-feed" class="w-1/5 shrink-0 h-full overflow-y-auto pb-24 snap-center relative"></main>
-            <main id="friends-feed" class="w-1/5 shrink-0 h-full overflow-y-auto snap-y snap-mandatory no-scrollbar snap-center relative"></main>
-            <main id="fixtures-feed" class="w-1/5 shrink-0 h-full overflow-y-auto pb-24 snap-center relative"></main>
-            <main id="tiktok-feed" class="w-1/5 shrink-0 h-full overflow-y-auto snap-y snap-mandatory no-scrollbar snap-center relative"></main>
-            <main id="traditional-feed" class="w-1/5 shrink-0 h-full overflow-y-auto pb-24 snap-center relative"></main>
+        <div class="flex w-[400%] h-full relative z-0">
+            <!-- Friends is a split view: bets above, chats below. The outer main
+                 must NOT scroll - each pane scrolls independently, otherwise the
+                 two fight and the divider drifts off screen. -->
+            <main class="w-1/4 shrink-0 h-full overflow-hidden flex flex-col snap-center relative">
+                <div id="friends-bets" class="h-[55%] shrink-0 overflow-y-auto snap-y snap-mandatory no-scrollbar"></div>
+                <div class="shrink-0 flex items-center justify-between px-4 py-2 border-y border-gray-200/70 dark:border-gray-800 bg-white/85 dark:bg-gray-900/85 backdrop-blur-md">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-gray-500">Messages</span>
+                    <button onclick="openNewSweep(this)" class="text-brand text-[11px] font-bold border border-brand rounded-lg px-2.5 py-1">+ Sweepstake</button>
+                </div>
+                <div id="messages-feed" class="flex-1 overflow-y-auto no-scrollbar"></div>
+            </main>
+            <!-- No pb-24 here: the level map supplies its own bottom padding
+                 (MAP_PAD_BOTTOM) and the two stacked into dead space. -->
+            <main id="fixtures-feed" class="w-1/4 shrink-0 h-full overflow-y-auto no-scrollbar snap-center relative"></main>
+            <main id="tiktok-feed" class="w-1/4 shrink-0 h-full overflow-y-auto snap-y snap-mandatory no-scrollbar snap-center relative"></main>
+            <main id="traditional-feed" class="w-1/4 shrink-0 h-full overflow-y-auto pb-24 snap-center relative"></main>
         </div>
     </div>
 
@@ -399,14 +446,59 @@
         </div>
 
         <div class="px-4 py-3 bg-[#FFF8F0] dark:bg-gray-900 border-b border-[#FFE5D0] dark:border-gray-800 shrink-0">
-            <div class="text-[#E85D04] text-xs font-bold">0% fees. Always.</div>
-            <div class="text-[11px] text-[#E85D04]/80 dark:text-orange-200/70 mt-0.5">
+            <div class="text-[#9A3412] dark:text-[#E85D04] text-xs font-bold">0% fees. Always.</div>
+            <div class="text-[11px] text-[#9A3412] dark:text-orange-200/70 mt-0.5">
                 Every &pound;1 goes into the pot and the whole pot goes to the winner.
                 prpht doesn&rsquo;t take a penny &ndash; we just run the group chat.
             </div>
         </div>
 
         <div id="sweeps-list" class="flex-1 overflow-y-auto no-scrollbar p-4 space-y-3"></div>
+    </div>
+
+    <!-- NEW SWEEPSTAKE. z above the sweeps page so it can be opened from there
+         as well as from the Friends messages header. -->
+    <div id="new-sweep-page" class="fixed inset-0 z-[65] bg-white dark:bg-gray-950 flex flex-col transform translate-x-full transition-transform duration-300">
+        <div class="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
+            <button onclick="closeNewSweep()" class="text-brand font-bold text-sm">Cancel</button>
+            <span class="font-bold">New sweepstake</span>
+            <span class="w-14"></span>
+        </div>
+        <div class="flex-1 overflow-y-auto no-scrollbar p-4 space-y-5">
+            <div>
+                <label class="text-[10px] font-bold uppercase tracking-widest text-gray-500">Name</label>
+                <input id="ns-name" type="text" placeholder="Office Grand National sweep"
+                       class="w-full mt-1.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-brand">
+            </div>
+            <div>
+                <label class="text-[10px] font-bold uppercase tracking-widest text-gray-500">Event</label>
+                <select id="ns-event" class="w-full mt-1.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-brand"></select>
+            </div>
+            <div>
+                <label class="text-[10px] font-bold uppercase tracking-widest text-gray-500">Invite friends</label>
+                <div id="ns-friends" class="mt-1.5 flex flex-wrap gap-2"></div>
+            </div>
+            <div>
+                <label class="text-[10px] font-bold uppercase tracking-widest text-gray-500">Invite by phone</label>
+                <div class="flex items-center space-x-2 mt-1.5">
+                    <input id="ns-phone" type="tel" inputmode="tel" placeholder="07700 900123"
+                           class="flex-1 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-brand">
+                    <button onclick="addPhoneInvite(this)" class="bg-gray-100 dark:bg-gray-800 font-bold text-sm px-4 py-2.5 rounded-xl">Add</button>
+                </div>
+                <div id="ns-phone-error" class="text-[11px] text-red-600 dark:text-red-400 mt-1 hidden"></div>
+                <div id="ns-phone-list" class="mt-2 space-y-1"></div>
+                <div class="text-[11px] text-gray-500 mt-2">
+                    They&rsquo;ll get a text with a join link. They only count towards the pot once they put their &pound;1 in.
+                </div>
+            </div>
+            <div class="rounded-xl bg-[#FFF8F0] dark:bg-gray-900 border border-[#FFE5D0] dark:border-gray-800 p-3">
+                <div class="text-[#9A3412] dark:text-[#E85D04] text-xs font-bold">0% fees</div>
+                <div class="text-[11px] text-[#9A3412] dark:text-orange-200/70 mt-0.5">Your &pound;1 goes straight into the pot.</div>
+            </div>
+        </div>
+        <div class="p-4 border-t border-gray-100 dark:border-gray-800 shrink-0">
+            <button onclick="submitNewSweep(this)" class="w-full bg-brand text-white font-bold py-3.5 rounded-xl text-sm shadow-md">Create &amp; join &middot; &pound;1</button>
+        </div>
     </div>
 
     <div id="thread-page" class="fixed inset-0 z-[60] bg-white dark:bg-gray-950 flex flex-col transform translate-x-full transition-transform duration-300">
@@ -584,7 +676,10 @@
                 const want = dark ? BG_DARK : BG_LIGHT;
                 for (let i = 0; i < 3; i++) bg[i] += (want[i] - bg[i]) * 0.12;
                 const bR = bg[0], bG = bg[1], bB = bg[2];
-                const strength = dark ? 0.62 : 0.85;   // was the CSS opacity
+                // Light mode used to be the STRONGER of the two (0.85 vs 0.62),
+                // which is backwards: on a white page the blobs tint the card
+                // backgrounds pink and drag muted text under the AA threshold.
+                const strength = dark ? 0.62 : 0.5;
                 const cr = current[0], cg = current[1], cb = current[2];
 
                 let p = 0;
@@ -777,7 +872,7 @@
                     </button>
                 `).join('');
                 return `
-                <div class="p-4 border-b border-gray-100/50 dark:border-gray-800/50 bg-white/40 dark:bg-gray-900/40 backdrop-blur-md transition-colors duration-300">
+                <div class="p-4 border-b border-gray-100/50 dark:border-gray-800/50 bg-white/75 dark:bg-gray-900/40 backdrop-blur-md transition-colors duration-300">
                     <div class="flex justify-between items-center text-xs text-gray-500 mb-4 font-semibold">
                         <span>${fixture.league}</span>
                         <span>${fixture.time}</span>
@@ -810,15 +905,16 @@
 
         // Four swipeable pages. This order must match the DOM order of the
         // <main> elements inside #feed-wrapper.
+        // Messages folded into the Friends page (bets on top, chats below), so
+        // there is no standalone Messages page any more.
         const PAGES = [
-            { key: 'messages', label: 'Messages' },
             { key: 'friends',  label: 'Friends'  },
             { key: 'fixtures', label: 'Fixtures' },
             { key: 'foryou',   label: 'For You'  },
             { key: 'betslip',  label: 'Betslip'  },
         ];
         const PAGE_COUNT = PAGES.length;
-        const PAGE_MESSAGES = 0, PAGE_FRIENDS = 1, PAGE_FIXTURES = 2, PAGE_TIKTOK = 3, PAGE_TRADITIONAL = 4;
+        const PAGE_FRIENDS = 0, PAGE_FIXTURES = 1, PAGE_TIKTOK = 2, PAGE_TRADITIONAL = 3;
         const LANDING_PAGE = PAGE_TIKTOK;      // open on the main feed
         let lastPage = -1;
 
@@ -1405,25 +1501,27 @@
         // copy, not timestamps, and sorting them lexically would be wrong.
         const fixtureOrder = ['f1', 'y1', 'f2', 'y2', 'r4', 'f4', 'y8', 't1'];
 
+        // Cards fill the top pane rather than the viewport now, so the headline
+        // is stepped down and the quote trimmed - the full-screen sizing would
+        // overflow roughly half the screen.
         function renderFriendsFeed() {
-            document.getElementById('friends-feed').innerHTML = friendsFeed.map((f, i) => `
-                <div class="h-full w-full snap-always snap-center flex flex-col justify-between p-5 box-border relative">
-                    <div class="flex items-center space-x-3 mt-2">
-                        ${avatarHtml(f.who, 'w-10 h-10')}
+            document.getElementById('friends-bets').innerHTML = friendsFeed.map((f, i) => `
+                <div class="h-full w-full snap-always snap-center flex flex-col justify-between px-5 py-3 box-border relative">
+                    <div class="flex items-center space-x-3">
+                        ${avatarHtml(f.who, 'w-9 h-9')}
                         <div class="min-w-0">
                             <div class="font-bold text-sm leading-tight">${esc(f.who)} <span class="font-normal text-gray-400">bet &pound;1</span></div>
-                            <div class="text-[10px] text-gray-400">${esc(f.ago)} ago \u00B7 ${esc(f.match)}</div>
+                            <div class="text-[10px] text-gray-400 truncate">${esc(f.ago)} ago \u00B7 ${esc(f.match)}</div>
                         </div>
                     </div>
-                    <div class="text-center my-auto px-1">
-                        <h2 class="headline text-gray-900 dark:text-white break-words">${esc(f.line)}</h2>
-                        <span class="stake-line text-xl text-gray-400 mt-4 block">&pound;1 &rarr; <span class="text-[#61AD34]">${money(f.odds)}</span></span>
-                        <div class="text-sm text-gray-400 italic mt-4">&ldquo;${esc(f.note)}&rdquo;</div>
+                    <div class="text-center my-auto px-1 min-w-0">
+                        <h2 class="headline-sm text-gray-900 dark:text-white break-words">${esc(f.line)}</h2>
+                        <span class="stake-line text-base text-gray-400 mt-2 block">&pound;1 &rarr; <span class="text-[#61AD34]">${money(f.odds)}</span></span>
                     </div>
-                    <div class="flex items-center space-x-3 mb-2">
-                        <button onclick="copyBet(${i}, this)" class="flex-1 bg-brand text-white font-bold py-3 rounded-xl text-sm shadow-md">Copy bet</button>
-                        <button onclick="shareFromFriends(${i}, this)" class="w-14 h-12 flex items-center justify-center rounded-xl border border-gray-200 dark:border-gray-700 text-gray-400">
-                            <svg class="w-5 h-5" viewBox="0 0 134.66 116.04" fill="currentColor" aria-hidden="true"><use href="#icon-share"/></svg>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="copyBet(${i}, this)" class="flex-1 bg-brand text-white font-bold py-2.5 rounded-xl text-xs shadow-md">Copy bet</button>
+                        <button onclick="shareFromFriends(${i}, this)" class="w-12 h-10 flex items-center justify-center rounded-xl border border-gray-200 dark:border-gray-700 text-gray-400">
+                            <svg class="w-4 h-4" viewBox="0 0 134.66 116.04" fill="currentColor" aria-hidden="true"><use href="#icon-share"/></svg>
                         </button>
                     </div>
                 </div>
@@ -1453,7 +1551,7 @@
            rather than only a leaderboard of what happens to be popular.
            --------------------------------------------------------------- */
         let watchParties = {};          // matchId -> { where, when, going: [names] }
-        let expandedFixture = null;     // matchId whose bet list is open
+        // expandedFixture is declared with the level-map renderer below.
 
         function fixtureClusters() {
             const byMatch = {};
@@ -1483,89 +1581,171 @@
             return fx ? fx.match : id;
         }
 
-        function renderFixturesFeed() {
-            const rows = fixtureClusters();
-            document.getElementById('fixtures-feed').innerHTML = `
-                <div class="p-4 border-b border-gray-100/50 dark:border-gray-800/50 bg-white/40 dark:bg-gray-900/40 backdrop-blur-md flex items-center justify-between">
-                    <div>
-                        <div class="font-bold text-sm">What's coming up</div>
-                        <div class="text-[10px] text-gray-400">Who's on it, and who's watching</div>
-                    </div>
-                    <button onclick="openSweeps()" class="text-brand text-xs font-bold border border-brand rounded-lg px-3 py-2">Sweepstakes</button>
-                </div>
-            ` + rows.map(r => {
-                const party = watchParties[r.id];
-                const youIn = party && party.going.indexOf('You') !== -1;
-                const people = [];
-                r.bets.forEach(b => { if (people.indexOf(b.who) === -1) people.push(b.who); });
-                const open = expandedFixture === r.id;
-                return `
-                <div class="p-4 border-b border-gray-100/50 dark:border-gray-800/50 bg-white/40 dark:bg-gray-900/40 backdrop-blur-md">
-                    <div class="flex justify-between items-baseline text-[10px] text-gray-400 font-semibold">
-                        <span>${esc(r.info.comp)} &middot; ${esc(r.info.venue)}</span>
-                        <span class="text-brand">${esc(r.info.when)}</span>
-                    </div>
-                    <div class="font-bold text-base mt-1">${esc(r.match)}</div>
+        /* ---- Level-select map ---------------------------------------------
+           Chronological BOTTOM-TO-TOP: the soonest fixture is the bottom node,
+           so the map reads like a progression track you climb. Nodes are
+           absolutely positioned over an SVG path.
 
-                    <div class="flex items-center mt-3">
-                        <div class="flex -space-x-2 mr-3">
-                            ${people.slice(0, 4).map(w => avatarHtml(w, 'w-7 h-7 ring-2 ring-white dark:ring-gray-900')).join('')}
-                        </div>
-                        <div class="text-xs text-gray-400 min-w-0 flex-1">
-                            ${people.length
-                                ? '<b class="text-gray-700 dark:text-gray-200">' + people.length + '</b> ' + (people.length === 1 ? 'friend has' : 'friends have') + ' a bet on this'
-                                : 'No bets from your friends yet'}
-                        </div>
-                    </div>
+           The SVG uses viewBox "0 0 100 <height>" with preserveAspectRatio
+           "none", so x is effectively a percentage and matches the CSS `left:%`
+           used for the nodes. That deliberately scales x and y unevenly, hence
+           vector-effect="non-scaling-stroke" - without it the path would render
+           with a visibly stretched, uneven stroke width.
+           ------------------------------------------------------------------ */
+        const MAP_SPACING = 172;    // px between node centres
+        const MAP_PAD_BOTTOM = 96;  // room under the first node
+        const MAP_PAD_TOP = 84;
+        const MAP_AMPLITUDE = 25;   // % either side of centre
+        let expandedFixture = null;
+        let fixturesInitialised = false;
 
-                    ${party ? `
-                        <div class="mt-3 rounded-xl border border-brand/40 bg-orange-50 dark:bg-gray-800 p-3">
-                            <div class="text-[10px] font-bold uppercase tracking-wider text-brand">Watch party</div>
-                            <div class="text-sm font-bold mt-0.5">${esc(party.where)}</div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400">${esc(party.when)} &middot; ${party.going.length} going</div>
-                            <div class="flex items-center space-x-2 mt-2">
-                                <button onclick="toggleGoing('${esc(r.id)}', this)" class="flex-1 ${youIn ? 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200' : 'bg-brand text-white'} font-bold py-2 rounded-lg text-xs">
-                                    ${youIn ? "You're going" : "I'm in"}
-                                </button>
-                                <button onclick="openPartyChat('${esc(r.id)}', this)" class="flex-1 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-bold py-2 rounded-lg text-xs">Group chat</button>
-                            </div>
-                        </div>
-                    ` : `
-                        <button onclick="organiseParty('${esc(r.id)}', this)" class="w-full mt-3 border border-brand text-brand font-bold py-2 rounded-lg text-xs">
-                            Organise watch party
-                        </button>
-                    `}
-
-                    ${r.bets.length ? `
-                        <button onclick="toggleFixtureBets('${esc(r.id)}')" class="w-full mt-2 text-[11px] font-bold text-gray-400 py-1">
-                            ${open ? 'Hide bets' : 'View ' + r.bets.length + ' bet' + (r.bets.length === 1 ? '' : 's')}
-                        </button>
-                        <div class="${open ? '' : 'hidden'} mt-1 space-y-2">
-                            ${r.bets.map(b => `
-                                <div class="flex items-center space-x-2 p-2 rounded-lg bg-white/60 dark:bg-gray-800/60">
-                                    ${avatarHtml(b.who, 'w-6 h-6')}
-                                    <div class="min-w-0 flex-1">
-                                        <div class="text-[11px] font-bold truncate">${esc(b.who)} &middot; ${esc(b.selection)}</div>
-                                        <div class="text-[10px] text-gray-400 truncate">${esc(b.line)}</div>
-                                    </div>
-                                    <span class="stake-line text-[11px] text-[#61AD34] shrink-0">${money(b.odds)}</span>
-                                    <button onclick="copyBet(${b.idx}, this)" class="shrink-0 text-[10px] font-bold text-brand border border-brand rounded px-2 py-1">Copy</button>
-                                </div>
-                            `).join('')}
-                        </div>
-                    ` : ''}
-                </div>`;
-            }).join('');
+        function mapNodePos(i) {
+            return { x: 50 + MAP_AMPLITUDE * Math.sin(i * 1.05 + 0.5) };
         }
 
-        function toggleFixtureBets(id) {
-            expandedFixture = expandedFixture === id ? null : id;
+        function renderFixturesFeed() {
+            const rows = fixtureClusters();
+            const n = rows.length;
+            const mapH = MAP_PAD_BOTTOM + MAP_PAD_TOP + Math.max(0, n - 1) * MAP_SPACING;
+
+            // index 0 = soonest = bottom
+            const pts = rows.map((r, i) => ({
+                x: mapNodePos(i).x,
+                y: mapH - MAP_PAD_BOTTOM - i * MAP_SPACING,
+                row: r, i: i
+            }));
+
+            let d = '';
+            pts.forEach((pt, i) => {
+                if (i === 0) { d += 'M ' + pt.x + ' ' + pt.y; return; }
+                const prev = pts[i - 1];
+                const k = MAP_SPACING * 0.45;
+                d += ' C ' + prev.x + ' ' + (prev.y - k) + ', ' + pt.x + ' ' + (pt.y + k) + ', ' + pt.x + ' ' + pt.y;
+            });
+
+            const feed = document.getElementById('fixtures-feed');
+            const keepScroll = feed.scrollTop;
+
+            feed.innerHTML =
+                '<div class="sticky top-0 z-20 p-4 border-b border-gray-200/70 dark:border-gray-800/70 bg-white/85 dark:bg-gray-900/85 backdrop-blur-md flex items-center justify-between">' +
+                    '<div><div class="font-bold text-sm">The run-in</div>' +
+                    '<div class="text-[10px] text-gray-400">Next up at the bottom \u00B7 climb as the week goes on</div></div>' +
+                    '<button onclick="openSweeps()" class="text-brand text-xs font-bold border border-brand rounded-lg px-3 py-2">Sweepstakes</button>' +
+                '</div>' +
+                '<div id="level-map" class="relative w-full" style="height:' + mapH + 'px">' +
+                    '<svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 ' + mapH + '" preserveAspectRatio="none" aria-hidden="true">' +
+                        '<path d="' + d + '" fill="none" stroke="currentColor" class="text-brand/25" stroke-width="6" stroke-linecap="round" vector-effect="non-scaling-stroke"/>' +
+                        '<path d="' + d + '" fill="none" stroke="currentColor" class="text-brand" stroke-width="2" stroke-linecap="round" stroke-dasharray="1 9" vector-effect="non-scaling-stroke"/>' +
+                    '</svg>' +
+                    pts.map(pt => mapNode(pt)).join('') +
+                    (expandedFixture ? mapExpanded(pts) : '') +
+                '</div>';
+
+            // Start at the bottom (the next fixture); afterwards keep position
+            // so expanding a node does not yank the map.
+            if (!fixturesInitialised) { feed.scrollTop = feed.scrollHeight; fixturesInitialised = true; }
+            else { feed.scrollTop = keepScroll; }
+        }
+
+        function mapNode(pt) {
+            const r = pt.row;
+            const people = [];
+            r.bets.forEach(b => { if (people.indexOf(b.who) === -1) people.push(b.who); });
+            const isNext = pt.i === 0;
+            const party = watchParties[r.id];
+            const open = expandedFixture === r.id;
+
+            // Avatars sit on a ring around the orb. Angles start top-left and
+            // sweep clockwise so the cluster never covers the title beneath.
+            const shown = people.slice(0, 5);
+            const RING = 46;
+            const avatars = shown.map((w, k) => {
+                const ang = (-140 + (k * (260 / Math.max(1, shown.length - 1 || 1)))) * Math.PI / 180;
+                const ax = Math.cos(ang) * RING, ay = Math.sin(ang) * RING;
+                return '<span class="absolute" style="left:calc(50% + ' + ax.toFixed(1) + 'px);top:calc(50% + ' + ay.toFixed(1) + 'px);transform:translate(-50%,-50%)">' +
+                       avatarHtml(w, 'w-6 h-6 ring-2 ring-white dark:ring-gray-950') + '</span>';
+            }).join('');
+
+            return '' +
+            '<div class="absolute" style="left:' + pt.x + '%;top:' + pt.y + 'px;transform:translate(-50%,-50%)">' +
+                '<button onclick="toggleFixture(\'' + esc(r.id) + '\')" class="relative block" style="width:150px">' +
+                    '<div class="relative mx-auto" style="width:96px;height:96px">' +
+                        (isNext ? '<span class="absolute inset-3 rounded-full bg-brand orb-pulse"></span>' : '') +
+                        '<span class="absolute inset-3 rounded-full ' + (open ? 'ring-4 ring-brand' : 'ring-2 ring-brand/40') + '"></span>' +
+                        // 1. The blurred background layer (Glow)
+                        '<span class="absolute inset-4 rounded-full blur-2xl opacity-80" ' +
+                            'style="background:radial-gradient(circle at 32% 28%, #FDBA74, #F97316 55%, #9A3412)"></span>' +
+
+                        // 2. The sharp text layer (No background)
+                        '<span class="absolute inset-4 rounded-full flex flex-col items-center justify-center text-white z-10">' +
+                            '<span class="stake-line text-base leading-none">' + r.bets.length + '</span>' +
+                            '<span class="text-[8px] font-bold uppercase tracking-wider opacity-80">' + (r.bets.length === 1 ? 'bet' : 'bets') + '</span>' +
+                        '</span>' +
+                           
+                        avatars +
+                    '</div>' +
+                    '<div class="mt-1.5 text-center">' +
+                        '<div class="text-[10px] font-bold uppercase tracking-wider ' + (isNext ? 'text-brand' : 'text-gray-400') + '">' +
+                            (isNext ? 'Next up' : esc(r.info.when)) + '</div>' +
+                        '<div class="text-xs font-bold leading-tight text-gray-900 dark:text-white">' + esc(r.match) + '</div>' +
+                        (party ? '<div class="text-[9px] font-bold text-brand mt-0.5">\u25CF Watch party</div>' : '') +
+                    '</div>' +
+                '</button>' +
+            '</div>';
+        }
+
+        function mapExpanded(pts) {
+            const pt = pts.find(p => p.row.id === expandedFixture);
+            if (!pt) return '';
+            const r = pt.row;
+            const party = watchParties[r.id];
+            const youIn = party && party.going.indexOf('You') !== -1;
+
+            return '' +
+            '<div class="absolute inset-0 bg-black/40 backdrop-blur-[2px] z-30" onclick="toggleFixture(null)"></div>' +
+            '<div class="absolute z-40 left-1/2 -translate-x-1/2 w-[92%] rounded-2xl border border-brand/50 bg-white dark:bg-gray-900 shadow-2xl p-4" ' +
+                 'style="top:' + Math.max(12, pt.y - 150) + 'px">' +
+                '<div class="flex justify-between items-baseline text-[10px] text-gray-400 font-semibold">' +
+                    '<span>' + esc(r.info.comp) + ' \u00B7 ' + esc(r.info.venue) + '</span>' +
+                    '<span class="text-brand">' + esc(r.info.when) + '</span>' +
+                '</div>' +
+                '<div class="font-bold text-base mt-1">' + esc(r.match) + '</div>' +
+
+                (party
+                    ? '<div class="mt-3 rounded-xl border border-brand/40 bg-orange-50 dark:bg-gray-800 p-3">' +
+                        '<div class="text-[10px] font-bold uppercase tracking-wider text-brand">Watch party</div>' +
+                        '<div class="text-sm font-bold mt-0.5">' + esc(party.where) + '</div>' +
+                        '<div class="text-xs text-gray-500 dark:text-gray-400">' + esc(party.when) + ' \u00B7 ' + party.going.length + ' going</div>' +
+                        '<div class="flex items-center space-x-2 mt-2">' +
+                            '<button onclick="toggleGoing(\'' + esc(r.id) + '\', this)" class="flex-1 ' + (youIn ? 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200' : 'bg-brand text-white') + ' font-bold py-2 rounded-lg text-xs">' + (youIn ? "You're going" : "I'm in") + '</button>' +
+                            '<button onclick="openPartyChat(\'' + esc(r.id) + '\', this)" class="flex-1 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-bold py-2 rounded-lg text-xs">Group chat</button>' +
+                        '</div></div>'
+                    : '<button onclick="organiseParty(\'' + esc(r.id) + '\', this)" class="w-full mt-3 border border-brand text-brand font-bold py-2 rounded-lg text-xs">Organise watch party</button>') +
+
+                (r.bets.length
+                    ? '<div class="mt-3 space-y-2 max-h-52 overflow-y-auto no-scrollbar">' +
+                        r.bets.map(b =>
+                          '<div class="flex items-center space-x-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-800">' +
+                            avatarHtml(b.who, 'w-6 h-6') +
+                            '<div class="min-w-0 flex-1">' +
+                                '<div class="text-[11px] font-bold truncate">' + esc(b.who) + ' \u00B7 ' + esc(b.selection) + '</div>' +
+                                '<div class="text-[10px] text-gray-400 truncate">' + esc(b.line) + '</div>' +
+                            '</div>' +
+                            '<span class="stake-line text-[11px] text-[#61AD34] shrink-0">' + money(b.odds) + '</span>' +
+                            '<button onclick="copyBet(' + b.idx + ', this)" class="shrink-0 text-[10px] font-bold text-brand border border-brand rounded px-2 py-1">Copy</button>' +
+                          '</div>').join('') +
+                      '</div>'
+                    : '<div class="mt-3 text-xs text-gray-400">No bets from your friends yet</div>') +
+
+                '<button onclick="toggleFixture(null)" class="w-full mt-3 text-[11px] font-bold text-gray-400 py-1">Close</button>' +
+            '</div>';
+        }
+
+        function toggleFixture(id) {
+            expandedFixture = (id && expandedFixture !== id) ? id : null;
             renderFixturesFeed();
         }
 
-        // Plain text, NOT HTML entities: these go through esc() at render time,
-        // which escapes '&' - pre-escaping here would double-encode and print
-        // a literal "&amp;" on screen.
         const PARTY_VENUES = ['The Crown & Anchor', 'Mine – big telly', 'The Dog House', 'Priya’s place', 'The Railway Tavern'];
 
         function organiseParty(id, btn) {
@@ -1673,7 +1853,7 @@
                 const drawn = s.status === 'drawn';
                 const youWon = drawn && s.winner === 'You';
                 return `
-                <div class="rounded-2xl border ${youWon ? 'border-[#61AD34]' : 'border-gray-200 dark:border-gray-800'} bg-white/60 dark:bg-gray-900/60 p-4">
+                <div class="rounded-2xl border ${youWon ? 'border-[#61AD34]' : 'border-gray-200 dark:border-gray-800'} bg-white/85 dark:bg-gray-900/60 p-4">
                     <div class="flex justify-between items-start">
                         <div class="min-w-0 pr-3">
                             <div class="font-bold text-sm leading-tight">${esc(s.name)}</div>
@@ -1691,6 +1871,10 @@
                         </div>
                         <div class="text-[11px] text-gray-400">${s.entrants.length} &times; &pound;1 &middot; <span class="text-[#61AD34] font-bold">no fees</span></div>
                     </div>
+                    ${(s.pending && s.pending.length) ? `
+                        <div class="text-[11px] text-gray-400 mt-1.5">
+                            ${s.pending.length} invited by text &middot; not in the pot until they join
+                        </div>` : ''}
 
                     ${drawn ? `
                         <div class="mt-3 rounded-xl bg-gray-50 dark:bg-gray-800 p-3">
@@ -1763,27 +1947,131 @@
             renderSweeps();
         }
 
-        function createSweep(btn) {
+        /* ---- New sweepstake sheet (friends + phone invites) ---------------- */
+        const SWEEP_EVENTS = [
+            { event: 'Arsenal v Chelsea',        runners: ['Arsenal', 'Draw', 'Chelsea'] },
+            { event: 'Man City v Liverpool',     runners: ['Man City', 'Draw', 'Liverpool'] },
+            { event: 'Grand National',           runners: ['Corach Rambler', 'I Am Maximus', 'Meetingofthewaters', 'Paddington', 'Galopin Des Champs', 'Fastorslow'] },
+            { event: 'Bayern Munich v Dortmund', runners: ['Bayern Munich', 'Draw', 'Dortmund'] },
+            { event: 'Wimbledon final',          runners: ['Djokovic', 'Alcaraz', 'Sinner', 'Medvedev'] },
+        ];
+        const ALL_FRIENDS = ['Simon', 'Priya', 'Dee', 'Marcus', 'Aoife', 'Tom'];
+        let nsFriends = [];      // selected friend names
+        let nsPhones = [];       // normalised phone strings
+
+        function openNewSweep(btn) {
             pressPop(btn);
-            const ideas = [
-                { name: 'Friday five-a-side sweep', event: 'Arsenal v Chelsea', runners: ['Arsenal', 'Draw', 'Chelsea'] },
-                { name: 'Work lunch sweep',         event: 'Man City v Liverpool', runners: ['Man City', 'Draw', 'Liverpool'] },
-                { name: 'Group chat sweep',         event: 'Grand National', runners: ['Corach Rambler', 'I Am Maximus', 'Meetingofthewaters', 'Paddington'] },
-            ];
-            const pick = ideas[Math.floor(Math.random() * ideas.length)];
-            if (balance < SWEEP_ENTRY) { showToast('Not enough balance'); return; }
-            balance -= SWEEP_ENTRY;
-            sweepstakes.unshift({
-                id: 'sx' + Date.now(),
-                name: pick.name, host: 'You', event: pick.event,
-                runners: pick.runners,
-                entrants: [{ who: 'You' }],
-                status: 'open'
-            });
-            renderBalance();
-            renderSweeps();
-            showToast('Sweepstake created · share it with your group');
+            nsFriends = []; nsPhones = [];
+            document.getElementById('ns-name').value = '';
+            document.getElementById('ns-phone').value = '';
+            document.getElementById('ns-event').innerHTML =
+                SWEEP_EVENTS.map((e, i) => `<option value="${i}">${esc(e.event)}</option>`).join('');
+            renderNsFriends();
+            renderNsPhones();
+            hideNsError();
+            document.getElementById('new-sweep-page').classList.remove('translate-x-full');
         }
+        function closeNewSweep() {
+            document.getElementById('new-sweep-page').classList.add('translate-x-full');
+        }
+
+        function renderNsFriends() {
+            document.getElementById('ns-friends').innerHTML = ALL_FRIENDS.map(f => {
+                const on = nsFriends.indexOf(f) !== -1;
+                return `<button onclick="toggleNsFriend('${esc(f)}')"
+                    class="flex items-center space-x-1.5 rounded-full pl-1 pr-3 py-1 border text-xs font-bold
+                    ${on ? 'border-brand bg-brand text-white' : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300'}">
+                    ${avatarHtml(f, 'w-6 h-6')}<span>${esc(f)}</span></button>`;
+            }).join('');
+        }
+        function toggleNsFriend(f) {
+            const i = nsFriends.indexOf(f);
+            if (i === -1) nsFriends.push(f); else nsFriends.splice(i, 1);
+            renderNsFriends();
+        }
+
+        function hideNsError() { document.getElementById('ns-phone-error').classList.add('hidden'); }
+        function showNsError(msg) {
+            const e = document.getElementById('ns-phone-error');
+            e.textContent = msg; e.classList.remove('hidden');
+        }
+
+        // Deliberately permissive: strip formatting, then require a plausible
+        // 10-13 digit number. Not a real carrier check, just enough that an
+        // obvious typo does not silently become an "invite".
+        //
+        // Returns a canonical KEY for comparison, so "07700 900123" and
+        // "+44 7700 900123" are recognised as the same person rather than
+        // invited twice. The number is still displayed as the user typed it.
+        function normalisePhone(raw) {
+            const digits = String(raw).replace(/[^\d+]/g, '').replace(/(?!^)\+/g, '');
+            let bare = digits.replace(/^\+/, '');
+            if (bare.length < 10 || bare.length > 13) return null;
+            if (bare.charAt(0) === '0') bare = '44' + bare.slice(1);   // UK local -> international
+            return bare;
+        }
+
+        function addPhoneInvite(btn) {
+            pressPop(btn);
+            const input = document.getElementById('ns-phone');
+            const val = input.value.trim();
+            if (!val) { showNsError('Enter a number first'); return; }
+            const key = normalisePhone(val);
+            if (!key) { showNsError("That doesn't look like a phone number"); return; }
+            if (nsPhones.some(p => p.key === key)) { showNsError('Already invited'); return; }
+            nsPhones.push({ display: val, key: key });
+            input.value = '';
+            hideNsError();
+            renderNsPhones();
+        }
+
+        function removePhoneInvite(i) { nsPhones.splice(i, 1); renderNsPhones(); }
+
+        function renderNsPhones() {
+            document.getElementById('ns-phone-list').innerHTML = nsPhones.map((p, i) => `
+                <div class="flex items-center justify-between bg-gray-50 dark:bg-gray-900 rounded-lg px-3 py-2">
+                    <span class="text-xs font-bold">${esc(p.display)}</span>
+                    <button onclick="removePhoneInvite(${i})" class="text-gray-400 text-xs font-bold">Remove</button>
+                </div>`).join('');
+        }
+
+        function submitNewSweep(btn) {
+            pressPop(btn);
+            if (balance < SWEEP_ENTRY) { showToast('Not enough balance'); return; }
+            const name = document.getElementById('ns-name').value.trim() || 'Untitled sweepstake';
+            const ev = SWEEP_EVENTS[document.getElementById('ns-event').value | 0] || SWEEP_EVENTS[0];
+
+            balance -= SWEEP_ENTRY;
+            const sweep = {
+                id: 'sx' + Date.now(),
+                name: name, host: 'You', event: ev.event, runners: ev.runners.slice(),
+                // Only paid-up people are entrants; phone invitees sit in
+                // `pending` so the pot never counts money nobody has put in.
+                entrants: [{ who: 'You' }].concat(nsFriends.map(f => ({ who: f }))),
+                pending: nsPhones.map(p => p.display),
+                status: 'open'
+            };
+            sweepstakes.unshift(sweep);
+
+            const chatId = 'sw-' + sweep.id;
+            conversations.unshift({
+                id: chatId, who: sweep.name, group: true,
+                members: ['You'].concat(nsFriends),
+                msgs: [{ from: 'me', kind: 'system',
+                         text: ev.event + ' · £1 each · no fees'
+                               + (nsPhones.length ? ' · ' + nsPhones.length + ' invited by text' : ''),
+                         t: 'now' }]
+            });
+
+            renderBalance();
+            renderMessagesFeed();
+            renderSweeps();
+            closeNewSweep();
+            showToast('Sweepstake created · ' + (nsFriends.length + nsPhones.length) + ' invited');
+        }
+
+        // Kept for the Sweepstakes page header, which now opens the same sheet.
+        function createSweep(btn) { openNewSweep(btn); }
 
         function sweepChat(id, btn) {
             pressPop(btn);
@@ -1848,7 +2136,7 @@
 
         function renderMessagesFeed() {
             document.getElementById('messages-feed').innerHTML = conversations.map(c => `
-                <div onclick="openThread('${esc(c.id)}')" class="flex items-center space-x-3 p-4 border-b border-gray-100/50 dark:border-gray-800/50 bg-white/40 dark:bg-gray-900/40 backdrop-blur-md cursor-pointer">
+                <div onclick="openThread('${esc(c.id)}')" class="flex items-center space-x-3 p-4 border-b border-gray-100/50 dark:border-gray-800/50 bg-white/75 dark:bg-gray-900/40 backdrop-blur-md cursor-pointer">
                     ${convoAvatar(c)}
                     <div class="min-w-0 flex-1">
                         <div class="font-bold text-sm truncate">${esc(c.who)}${c.group ? ' <span class="text-[10px] font-normal text-gray-400">· ' + (c.members || []).length + '</span>' : ''}</div>
