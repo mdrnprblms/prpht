@@ -239,7 +239,9 @@
          element driven continuously from scrollLeft (see updateNavHighlight),
          so it tracks the finger mid-swipe instead of jumping on release. -->
     <div class="relative shrink-0 z-10 border-b border-gray-100 dark:border-gray-800 bg-white/80 dark:bg-gray-950/80 backdrop-blur-md overflow-hidden">
-        <div id="page-nav-highlight" class="absolute top-0 bottom-0 left-0 w-1/4 bg-brand" style="transform: translateX(0%)"></div>
+        <!-- Width must equal 1/PAGE_COUNT: updateNavHighlight advances by
+             translateX(100%), i.e. exactly one slot of its own width. -->
+        <div id="page-nav-highlight" class="absolute top-0 bottom-0 left-0 w-1/5 bg-brand" style="transform: translateX(0%)"></div>
         <div id="page-nav" class="relative flex"></div>
     </div>
 
@@ -269,11 +271,12 @@
              400% track, so each main is exactly one viewport wide. -->
         <!-- DOM order IS the page order: Messages, Friends, For You, Betslip.
              Must stay in sync with the PAGES array and the PAGE_* constants. -->
-        <div class="flex w-[400%] h-full relative z-0">
-            <main id="messages-feed" class="w-1/4 shrink-0 h-full overflow-y-auto pb-24 snap-center relative"></main>
-            <main id="friends-feed" class="w-1/4 shrink-0 h-full overflow-y-auto snap-y snap-mandatory no-scrollbar snap-center relative"></main>
-            <main id="tiktok-feed" class="w-1/4 shrink-0 h-full overflow-y-auto snap-y snap-mandatory no-scrollbar snap-center relative"></main>
-            <main id="traditional-feed" class="w-1/4 shrink-0 h-full overflow-y-auto pb-24 snap-center relative"></main>
+        <div class="flex w-[500%] h-full relative z-0">
+            <main id="messages-feed" class="w-1/5 shrink-0 h-full overflow-y-auto pb-24 snap-center relative"></main>
+            <main id="friends-feed" class="w-1/5 shrink-0 h-full overflow-y-auto snap-y snap-mandatory no-scrollbar snap-center relative"></main>
+            <main id="fixtures-feed" class="w-1/5 shrink-0 h-full overflow-y-auto pb-24 snap-center relative"></main>
+            <main id="tiktok-feed" class="w-1/5 shrink-0 h-full overflow-y-auto snap-y snap-mandatory no-scrollbar snap-center relative"></main>
+            <main id="traditional-feed" class="w-1/5 shrink-0 h-full overflow-y-auto pb-24 snap-center relative"></main>
         </div>
     </div>
 
@@ -368,6 +371,13 @@
                     <div class="text-[10px] text-gray-400 font-bold uppercase mt-1">Win rate</div>
                 </div>
             </div>
+            <button onclick="closeAccount(); openSweeps();" class="w-full p-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between text-left">
+                <div>
+                    <div class="font-bold text-sm">Sweepstakes</div>
+                    <div class="text-[11px] text-gray-400 mt-0.5">Run one for your office or group &middot; 0% fees</div>
+                </div>
+                <span class="text-brand font-bold text-lg">&rsaquo;</span>
+            </button>
             <div class="p-5">
                 <div class="flex justify-between items-center mb-3">
                     <span class="text-xs font-bold text-gray-500 tracking-wider uppercase">Bet history</span>
@@ -379,6 +389,26 @@
     </div>
 
     <!-- MESSAGE THREAD ------------------------------------------------------ -->
+    <!-- SWEEPSTAKES MODE. Deliberately a separate mode rather than a feed tab:
+         it is not sportsbook activity, no odds and no house involvement. -->
+    <div id="sweeps-page" class="fixed inset-0 z-[60] bg-white dark:bg-gray-950 flex flex-col transform translate-x-full transition-transform duration-300">
+        <div class="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
+            <button onclick="closeSweeps()" class="text-brand font-bold text-sm">&larr; Back</button>
+            <span class="font-bold">Sweepstakes</span>
+            <button onclick="createSweep(this)" class="text-brand font-bold text-sm">New</button>
+        </div>
+
+        <div class="px-4 py-3 bg-[#FFF8F0] dark:bg-gray-900 border-b border-[#FFE5D0] dark:border-gray-800 shrink-0">
+            <div class="text-[#E85D04] text-xs font-bold">0% fees. Always.</div>
+            <div class="text-[11px] text-[#E85D04]/80 dark:text-orange-200/70 mt-0.5">
+                Every &pound;1 goes into the pot and the whole pot goes to the winner.
+                prpht doesn&rsquo;t take a penny &ndash; we just run the group chat.
+            </div>
+        </div>
+
+        <div id="sweeps-list" class="flex-1 overflow-y-auto no-scrollbar p-4 space-y-3"></div>
+    </div>
+
     <div id="thread-page" class="fixed inset-0 z-[60] bg-white dark:bg-gray-950 flex flex-col transform translate-x-full transition-transform duration-300">
         <div class="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
             <button onclick="closeThread()" class="text-brand font-bold text-sm">&larr; Back</button>
@@ -641,6 +671,7 @@
             renderTabs();
             renderFeeds();
             renderFriendsFeed();
+            renderFixturesFeed();
             renderMessagesFeed();
             renderBalance();
             renderSlip();          // seeds the £0.00 / button label
@@ -782,11 +813,12 @@
         const PAGES = [
             { key: 'messages', label: 'Messages' },
             { key: 'friends',  label: 'Friends'  },
+            { key: 'fixtures', label: 'Fixtures' },
             { key: 'foryou',   label: 'For You'  },
             { key: 'betslip',  label: 'Betslip'  },
         ];
         const PAGE_COUNT = PAGES.length;
-        const PAGE_MESSAGES = 0, PAGE_FRIENDS = 1, PAGE_TIKTOK = 2, PAGE_TRADITIONAL = 3;
+        const PAGE_MESSAGES = 0, PAGE_FRIENDS = 1, PAGE_FIXTURES = 2, PAGE_TIKTOK = 3, PAGE_TRADITIONAL = 4;
         const LANDING_PAGE = PAGE_TIKTOK;      // open on the main feed
         let lastPage = -1;
 
@@ -1119,6 +1151,11 @@
            would otherwise need three levels of nested quote escaping.
            ---------------------------------------------------------------- */
         function avatarHtml(who, sizeClasses) {
+            // "You" is the account holder, not a friend - there is no dp-you.jpg
+            // and requesting one just 404s. Use the profile initials instead.
+            if (who === 'You') {
+                return '<span class="' + sizeClasses + ' rounded-full shrink-0 inline-flex items-center justify-center bg-brand text-white font-black leading-none" style="font-size:0.55em">LP</span>';
+            }
             return '<img src="dp-' + esc(String(who).toLowerCase()) + '.jpg" alt=""' +
                    ' class="' + sizeClasses + ' rounded-full object-cover shrink-0"' +
                    ' onerror="avatarFallback(this)">';
@@ -1328,14 +1365,45 @@
         /* ---------------------------------------------------------------
            FRIENDS FEED
            --------------------------------------------------------------- */
+        // Deliberately several bets per matchId: the Fixtures timeline groups on
+        // matchId, so without overlap every "cluster" would be a lone punter and
+        // the whole watch-party premise would fall flat.
         const friendsFeed = [
-            { who: 'Simon',  initials: 'S',  colour: '#EF0107', ago: '2m',  matchId: 'f1', selection: 'Arsenal',        match: 'Arsenal v Chelsea',        odds: 2.10, line: 'Arsenal to beat Chelsea within 90 minutes', note: 'they are unreal at home right now' },
-            { who: 'Priya',  initials: 'P',  colour: '#6CABDD', ago: '11m', matchId: 'y2', selection: 'Haaland hat-trick', match: 'Man City v Liverpool',   odds: 41.00, line: 'Haaland to score a hat-trick and Manchester City to win 4-0', note: 'one pound to change my life' },
-            { who: 'Dee',    initials: 'D',  colour: '#F97316', ago: '24m', matchId: 'r4', selection: 'Corach Rambler',  match: 'Grand National',           odds: 6.00, line: 'Corach Rambler to win the Grand National', note: 'dad had a dream about this horse' },
-            { who: 'Marcus', initials: 'M',  colour: '#61AD34', ago: '38m', matchId: 't1', selection: 'Djokovic',        match: 'Djokovic v Alcaraz',       odds: 1.65, line: 'Novak Djokovic to beat Carlos Alcaraz at Wimbledon', note: 'never bet against the man' },
-            { who: 'Aoife',  initials: 'A',  colour: '#004170', ago: '1h',  matchId: 'y8', selection: 'Keeper to score', match: 'PSG v Marseille',          odds: 66.00, line: 'Any goalkeeper to score and the match to finish level', note: 'absolutely no notes. just vibes' },
-            { who: 'Tom',    initials: 'T',  colour: '#DC052D', ago: '2h',  matchId: 'f4', selection: 'Dortmund',        match: 'Bayern Munich v Dortmund',  odds: 5.00, line: 'Dortmund to win Der Klassiker in Munich', note: 'value is value' },
+            { who: 'Simon',  ago: '2m',  matchId: 'f1', selection: 'Arsenal',           match: 'Arsenal v Chelsea',       odds: 2.10,  line: 'Arsenal to beat Chelsea within 90 minutes', note: 'they are unreal at home right now' },
+            { who: 'Priya',  ago: '11m', matchId: 'y2', selection: 'Haaland hat-trick', match: 'Man City v Liverpool',    odds: 41.00, line: 'Haaland to score a hat-trick and Manchester City to win 4-0', note: 'one pound to change my life' },
+            { who: 'Dee',    ago: '24m', matchId: 'r4', selection: 'Corach Rambler',    match: 'Grand National',          odds: 6.00,  line: 'Corach Rambler to win the Grand National', note: 'dad had a dream about this horse' },
+            { who: 'Marcus', ago: '38m', matchId: 't1', selection: 'Djokovic',          match: 'Djokovic v Alcaraz',      odds: 1.65,  line: 'Novak Djokovic to beat Carlos Alcaraz at Wimbledon', note: 'never bet against the man' },
+            { who: 'Aoife',  ago: '1h',  matchId: 'y8', selection: 'Keeper to score',   match: 'PSG v Marseille',         odds: 66.00, line: 'Any goalkeeper to score and the match to finish level', note: 'absolutely no notes. just vibes' },
+            { who: 'Tom',    ago: '2h',  matchId: 'f4', selection: 'Dortmund',          match: 'Bayern Munich v Dortmund', odds: 5.00, line: 'Dortmund to win Der Klassiker in Munich', note: 'value is value' },
+
+            // The overlapping ones - these are what create the clusters.
+            { who: 'Dee',    ago: '3m',  matchId: 'f1', selection: 'Chelsea',           match: 'Arsenal v Chelsea',       odds: 3.80,  line: 'Chelsea to win away at the Emirates', note: 'someone has to say it' },
+            { who: 'Aoife',  ago: '9m',  matchId: 'f1', selection: 'Draw',              match: 'Arsenal v Chelsea',       odds: 3.40,  line: 'Arsenal and Chelsea to share the points', note: 'the sensible money' },
+            { who: 'Marcus', ago: '15m', matchId: 'f1', selection: 'Arsenal',           match: 'Arsenal v Chelsea',       odds: 2.10,  line: 'Arsenal to beat Chelsea within 90 minutes', note: 'with Simon on this one' },
+            { who: 'Tom',    ago: '20m', matchId: 'y1', selection: 'Saka & Odegaard',   match: 'Arsenal v Chelsea',       odds: 29.00, line: 'Saka to assist Odegaard and Odegaard to assist Saka', note: 'the dream ticket' },
+            { who: 'Simon',  ago: '31m', matchId: 'f2', selection: 'Liverpool',         match: 'Man City v Liverpool',    odds: 4.20,  line: 'Liverpool to win away at the Etihad', note: 'they owe us one' },
+            { who: 'Dee',    ago: '44m', matchId: 'f2', selection: 'Man City',          match: 'Man City v Liverpool',    odds: 1.90,  line: 'Manchester City to beat Liverpool within 90 minutes', note: 'boring but right' },
+            { who: 'Priya',  ago: '52m', matchId: 'f4', selection: 'Bayern Munich',     match: 'Bayern Munich v Dortmund', odds: 1.75, line: 'Bayern Munich to beat Dortmund within 90 minutes', note: 'sorry Tom' },
+            { who: 'Simon',  ago: '1h',  matchId: 't1', selection: 'Alcaraz',           match: 'Djokovic v Alcaraz',      odds: 2.20,  line: 'Carlos Alcaraz to beat Novak Djokovic at Wimbledon', note: 'new era, Marcus' },
+            { who: 'Aoife',  ago: '1h',  matchId: 'r4', selection: 'I Am Maximus',      match: 'Grand National',          odds: 8.00,  line: 'I Am Maximus to win the Grand National', note: 'best name in the race' },
+            { who: 'Marcus', ago: '2h',  matchId: 'r4', selection: 'Corach Rambler',    match: 'Grand National',          odds: 6.00,  line: 'Corach Rambler to win the Grand National', note: 'following Dee blindly' },
         ];
+
+        // Kickoff ordering for the timeline. Keyed by matchId so a fixture can
+        // be shown even when nobody has bet on it yet.
+        const fixtureTimes = {
+            f1: { when: 'Today 12:30',    venue: 'Emirates Stadium',   comp: 'Premier League' },
+            y1: { when: 'Today 12:30',    venue: 'Emirates Stadium',   comp: 'Premier League' },
+            f2: { when: 'Today 17:30',    venue: 'Etihad Stadium',     comp: 'Premier League' },
+            y2: { when: 'Today 17:30',    venue: 'Etihad Stadium',     comp: 'Premier League' },
+            r4: { when: 'Tomorrow 16:00', venue: 'Aintree',            comp: 'Grand National' },
+            f4: { when: 'Sun 14:30',      venue: 'Allianz Arena',      comp: 'Bundesliga' },
+            t1: { when: 'Wed 13:00',      venue: 'Centre Court',       comp: 'Wimbledon' },
+            y8: { when: 'Tue 20:00',      venue: 'Parc des Princes',   comp: 'Ligue 1' },
+        };
+        // Explicit order rather than parsing those strings - they are display
+        // copy, not timestamps, and sorting them lexically would be wrong.
+        const fixtureOrder = ['f1', 'y1', 'f2', 'y2', 'r4', 'f4', 'y8', 't1'];
 
         function renderFriendsFeed() {
             document.getElementById('friends-feed').innerHTML = friendsFeed.map((f, i) => `
@@ -1378,6 +1446,366 @@
         }
 
         /* ---------------------------------------------------------------
+           FIXTURE TIMELINE + WATCH PARTIES
+
+           The timeline groups friendsFeed by matchId. Fixtures with no bets
+           still appear (from fixtureTimes) so the list reads as a schedule
+           rather than only a leaderboard of what happens to be popular.
+           --------------------------------------------------------------- */
+        let watchParties = {};          // matchId -> { where, when, going: [names] }
+        let expandedFixture = null;     // matchId whose bet list is open
+
+        function fixtureClusters() {
+            const byMatch = {};
+            friendsFeed.forEach((f, i) => {
+                (byMatch[f.matchId] = byMatch[f.matchId] || []).push({ ...f, idx: i });
+            });
+            // Merge the bet-builder ids (y1/y2) into their parent fixture so a
+            // fixture is one row, not two.
+            return fixtureOrder
+                .filter(id => fixtureTimes[id])
+                .map(id => ({
+                    id,
+                    info: fixtureTimes[id],
+                    match: (byMatch[id] && byMatch[id][0] && byMatch[id][0].match) || matchNameFor(id),
+                    bets: byMatch[id] || []
+                }))
+                // collapse duplicates that share a match name + kickoff
+                .reduce((acc, row) => {
+                    const twin = acc.find(r => r.match === row.match && r.info.when === row.info.when);
+                    if (twin) { twin.bets = twin.bets.concat(row.bets); return acc; }
+                    acc.push(row); return acc;
+                }, []);
+        }
+
+        function matchNameFor(id) {
+            const fx = demoFixtures.find(f => f.id === id);
+            return fx ? fx.match : id;
+        }
+
+        function renderFixturesFeed() {
+            const rows = fixtureClusters();
+            document.getElementById('fixtures-feed').innerHTML = `
+                <div class="p-4 border-b border-gray-100/50 dark:border-gray-800/50 bg-white/40 dark:bg-gray-900/40 backdrop-blur-md flex items-center justify-between">
+                    <div>
+                        <div class="font-bold text-sm">What's coming up</div>
+                        <div class="text-[10px] text-gray-400">Who's on it, and who's watching</div>
+                    </div>
+                    <button onclick="openSweeps()" class="text-brand text-xs font-bold border border-brand rounded-lg px-3 py-2">Sweepstakes</button>
+                </div>
+            ` + rows.map(r => {
+                const party = watchParties[r.id];
+                const youIn = party && party.going.indexOf('You') !== -1;
+                const people = [];
+                r.bets.forEach(b => { if (people.indexOf(b.who) === -1) people.push(b.who); });
+                const open = expandedFixture === r.id;
+                return `
+                <div class="p-4 border-b border-gray-100/50 dark:border-gray-800/50 bg-white/40 dark:bg-gray-900/40 backdrop-blur-md">
+                    <div class="flex justify-between items-baseline text-[10px] text-gray-400 font-semibold">
+                        <span>${esc(r.info.comp)} &middot; ${esc(r.info.venue)}</span>
+                        <span class="text-brand">${esc(r.info.when)}</span>
+                    </div>
+                    <div class="font-bold text-base mt-1">${esc(r.match)}</div>
+
+                    <div class="flex items-center mt-3">
+                        <div class="flex -space-x-2 mr-3">
+                            ${people.slice(0, 4).map(w => avatarHtml(w, 'w-7 h-7 ring-2 ring-white dark:ring-gray-900')).join('')}
+                        </div>
+                        <div class="text-xs text-gray-400 min-w-0 flex-1">
+                            ${people.length
+                                ? '<b class="text-gray-700 dark:text-gray-200">' + people.length + '</b> ' + (people.length === 1 ? 'friend has' : 'friends have') + ' a bet on this'
+                                : 'No bets from your friends yet'}
+                        </div>
+                    </div>
+
+                    ${party ? `
+                        <div class="mt-3 rounded-xl border border-brand/40 bg-orange-50 dark:bg-gray-800 p-3">
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-brand">Watch party</div>
+                            <div class="text-sm font-bold mt-0.5">${esc(party.where)}</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">${esc(party.when)} &middot; ${party.going.length} going</div>
+                            <div class="flex items-center space-x-2 mt-2">
+                                <button onclick="toggleGoing('${esc(r.id)}', this)" class="flex-1 ${youIn ? 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200' : 'bg-brand text-white'} font-bold py-2 rounded-lg text-xs">
+                                    ${youIn ? "You're going" : "I'm in"}
+                                </button>
+                                <button onclick="openPartyChat('${esc(r.id)}', this)" class="flex-1 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-bold py-2 rounded-lg text-xs">Group chat</button>
+                            </div>
+                        </div>
+                    ` : `
+                        <button onclick="organiseParty('${esc(r.id)}', this)" class="w-full mt-3 border border-brand text-brand font-bold py-2 rounded-lg text-xs">
+                            Organise watch party
+                        </button>
+                    `}
+
+                    ${r.bets.length ? `
+                        <button onclick="toggleFixtureBets('${esc(r.id)}')" class="w-full mt-2 text-[11px] font-bold text-gray-400 py-1">
+                            ${open ? 'Hide bets' : 'View ' + r.bets.length + ' bet' + (r.bets.length === 1 ? '' : 's')}
+                        </button>
+                        <div class="${open ? '' : 'hidden'} mt-1 space-y-2">
+                            ${r.bets.map(b => `
+                                <div class="flex items-center space-x-2 p-2 rounded-lg bg-white/60 dark:bg-gray-800/60">
+                                    ${avatarHtml(b.who, 'w-6 h-6')}
+                                    <div class="min-w-0 flex-1">
+                                        <div class="text-[11px] font-bold truncate">${esc(b.who)} &middot; ${esc(b.selection)}</div>
+                                        <div class="text-[10px] text-gray-400 truncate">${esc(b.line)}</div>
+                                    </div>
+                                    <span class="stake-line text-[11px] text-[#61AD34] shrink-0">${money(b.odds)}</span>
+                                    <button onclick="copyBet(${b.idx}, this)" class="shrink-0 text-[10px] font-bold text-brand border border-brand rounded px-2 py-1">Copy</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                </div>`;
+            }).join('');
+        }
+
+        function toggleFixtureBets(id) {
+            expandedFixture = expandedFixture === id ? null : id;
+            renderFixturesFeed();
+        }
+
+        // Plain text, NOT HTML entities: these go through esc() at render time,
+        // which escapes '&' - pre-escaping here would double-encode and print
+        // a literal "&amp;" on screen.
+        const PARTY_VENUES = ['The Crown & Anchor', 'Mine – big telly', 'The Dog House', 'Priya’s place', 'The Railway Tavern'];
+
+        function organiseParty(id, btn) {
+            pressPop(btn);
+            const rows = fixtureClusters();
+            const row = rows.find(r => r.id === id);
+            if (!row) return;
+            const people = [];
+            row.bets.forEach(b => { if (people.indexOf(b.who) === -1) people.push(b.who); });
+            watchParties[id] = {
+                where: PARTY_VENUES[Math.floor(Math.random() * PARTY_VENUES.length)],
+                when: row.info.when,
+                going: ['You'],
+                match: row.match,
+                invited: people
+            };
+            createPartyChat(id);
+            renderFixturesFeed();
+            showToast('Watch party created · ' + people.length + ' invited');
+        }
+
+        function toggleGoing(id, btn) {
+            pressPop(btn);
+            const p = watchParties[id];
+            if (!p) return;
+            const i = p.going.indexOf('You');
+            if (i === -1) { p.going.push('You'); showToast("You're going"); }
+            else { p.going.splice(i, 1); showToast('Left the watch party'); }
+            renderFixturesFeed();
+        }
+
+        /* Group chat created alongside a watch party, so organising one actually
+           lands somewhere the user can see (Messages), not just on this page. */
+        function createPartyChat(id) {
+            const p = watchParties[id];
+            if (!p) return null;
+            const chatId = 'wp-' + id;
+            if (conversations.some(c => c.id === chatId)) return chatId;
+            conversations.unshift({
+                id: chatId,
+                who: p.match,
+                group: true,
+                members: ['You'].concat(p.invited),
+                msgs: [
+                    { from: 'me', kind: 'system', text: 'Watch party at ' + p.where + ' · ' + p.when, t: 'now' },
+                    { from: 'them', who: p.invited[0] || 'Simon', text: 'in', t: 'now' }
+                ]
+            });
+            renderMessagesFeed();
+            return chatId;
+        }
+
+        function openPartyChat(id, btn) {
+            pressPop(btn);
+            const chatId = createPartyChat(id);
+            if (chatId) openThread(chatId);
+        }
+
+        /* ---------------------------------------------------------------
+           SWEEPSTAKES
+
+           Deliberately outside the sportsbook: no odds, no house margin, no
+           settlement engine. Entry is a flat GBP 1, the pot is exactly
+           entrants x GBP 1, and the whole pot goes to one entrant. The app
+           never takes a cut - that is the entire point of the feature, so the
+           pot is always derived from the entrant count rather than stored,
+           and there is nowhere for a fee to creep in.
+           --------------------------------------------------------------- */
+        const SWEEP_ENTRY = 1.00;
+
+        let sweepstakes = [
+            { id: 's1', name: 'Office Grand National Sweep', host: 'Priya', event: 'Grand National',
+              runners: ['Corach Rambler', 'I Am Maximus', 'Meetingofthewaters', 'Galopin Des Champs', 'Fastorslow', 'Gerri Colombe'],
+              entrants: [{ who: 'Priya' }, { who: 'Simon' }, { who: 'Dee' }, { who: 'Marcus' }], status: 'open' },
+            { id: 's2', name: 'Five-a-side lads: Wimbledon', host: 'Marcus', event: 'Wimbledon',
+              runners: ['Djokovic', 'Alcaraz', 'Sinner', 'Medvedev', 'Zverev', 'Tsitsipas'],
+              entrants: [{ who: 'Marcus' }, { who: 'Tom' }, { who: 'Aoife' }], status: 'open' },
+            { id: 's3', name: 'Sunday league sweep', host: 'Dee', event: 'Bayern Munich v Dortmund',
+              runners: ['Bayern Munich', 'Draw', 'Dortmund'],
+              entrants: [{ who: 'Dee', pick: 'Bayern Munich' }, { who: 'Aoife', pick: 'Draw' }, { who: 'Tom', pick: 'Dortmund' }],
+              status: 'drawn', winner: 'Aoife', pot: 3 },
+        ];
+
+        function sweepPot(s) {
+            // Derived, never stored while open: entrants x entry, no deductions.
+            return s.status === 'drawn' && typeof s.pot === 'number'
+                ? s.pot
+                : s.entrants.length * SWEEP_ENTRY;
+        }
+
+        function inSweep(s) { return s.entrants.some(e => e.who === 'You'); }
+
+        function openSweeps() {
+            renderSweeps();
+            document.getElementById('sweeps-page').classList.remove('translate-x-full');
+        }
+        function closeSweeps() {
+            document.getElementById('sweeps-page').classList.add('translate-x-full');
+        }
+
+        function renderSweeps() {
+            document.getElementById('sweeps-list').innerHTML = sweepstakes.map(s => {
+                const joined = inSweep(s);
+                const mine = s.entrants.find(e => e.who === 'You');
+                const drawn = s.status === 'drawn';
+                const youWon = drawn && s.winner === 'You';
+                return `
+                <div class="rounded-2xl border ${youWon ? 'border-[#61AD34]' : 'border-gray-200 dark:border-gray-800'} bg-white/60 dark:bg-gray-900/60 p-4">
+                    <div class="flex justify-between items-start">
+                        <div class="min-w-0 pr-3">
+                            <div class="font-bold text-sm leading-tight">${esc(s.name)}</div>
+                            <div class="text-[10px] text-gray-400 mt-0.5">${esc(s.event)} &middot; run by ${esc(s.host)}</div>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <div class="stake-line text-lg text-[#61AD34]">${money(sweepPot(s))}</div>
+                            <div class="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Pot</div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center mt-3">
+                        <div class="flex -space-x-2 mr-2">
+                            ${s.entrants.slice(0, 5).map(e => avatarHtml(e.who, 'w-6 h-6 ring-2 ring-white dark:ring-gray-900')).join('')}
+                        </div>
+                        <div class="text-[11px] text-gray-400">${s.entrants.length} &times; &pound;1 &middot; <span class="text-[#61AD34] font-bold">no fees</span></div>
+                    </div>
+
+                    ${drawn ? `
+                        <div class="mt-3 rounded-xl bg-gray-50 dark:bg-gray-800 p-3">
+                            <div class="text-[10px] font-bold uppercase tracking-wider ${youWon ? 'text-[#61AD34]' : 'text-gray-400'}">
+                                ${youWon ? 'You won' : 'Winner'}
+                            </div>
+                            <div class="text-sm font-bold mt-0.5">${esc(s.winner)} &middot; ${money(sweepPot(s))}</div>
+                            <div class="mt-2 space-y-1">
+                                ${s.entrants.map(e => `
+                                    <div class="flex justify-between text-[11px] ${e.who === s.winner ? 'text-[#61AD34] font-bold' : 'text-gray-400'}">
+                                        <span>${esc(e.who)}</span><span>${esc(e.pick || '–')}</span>
+                                    </div>`).join('')}
+                            </div>
+                        </div>
+                    ` : `
+                        ${mine && mine.pick ? `<div class="mt-3 text-[11px] text-gray-400">You drew <b class="text-gray-700 dark:text-gray-200">${esc(mine.pick)}</b></div>` : ''}
+                        <div class="flex items-center space-x-2 mt-3">
+                            ${joined
+                                ? `<button onclick="drawSweep('${esc(s.id)}', this)" class="flex-1 bg-brand text-white font-bold py-2.5 rounded-xl text-xs">Draw it</button>`
+                                : `<button onclick="joinSweep('${esc(s.id)}', this)" class="flex-1 bg-brand text-white font-bold py-2.5 rounded-xl text-xs">Join &middot; &pound;1</button>`}
+                            <button onclick="sweepChat('${esc(s.id)}', this)" class="flex-1 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-bold py-2.5 rounded-xl text-xs">Group chat</button>
+                        </div>
+                    `}
+                </div>`;
+            }).join('') || '<div class="text-center text-sm text-gray-400 py-10">No sweepstakes yet</div>';
+        }
+
+        function joinSweep(id, btn) {
+            pressPop(btn);
+            const s = sweepstakes.find(x => x.id === id);
+            if (!s || s.status === 'drawn') return;
+            if (inSweep(s)) { showToast('You are already in'); return; }
+            if (balance < SWEEP_ENTRY) { showToast('Not enough balance'); return; }
+            balance -= SWEEP_ENTRY;          // goes straight to the pot, undiluted
+            s.entrants.push({ who: 'You' });
+            renderBalance();
+            renderSweeps();
+            // Real characters, not entities: showToast writes textContent, so
+            // "&middot;" would appear verbatim.
+            showToast('Joined · pot now ' + money(sweepPot(s)));
+        }
+
+        function drawSweep(id, btn) {
+            pressPop(btn);
+            const s = sweepstakes.find(x => x.id === id);
+            if (!s || s.status === 'drawn') return;
+            if (s.entrants.length < 2) { showToast('Need at least two entrants'); return; }
+
+            // Shuffle runners so each entrant gets a distinct pick where possible.
+            const pool = s.runners.slice();
+            for (let i = pool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pool[i], pool[j]] = [pool[j], pool[i]];
+            }
+            s.entrants.forEach((e, i) => { e.pick = pool[i % pool.length]; });
+
+            const pot = sweepPot(s);         // capture BEFORE marking drawn
+            const winner = s.entrants[Math.floor(Math.random() * s.entrants.length)];
+            s.winner = winner.who;
+            s.pot = pot;
+            s.status = 'drawn';
+
+            if (winner.who === 'You') {
+                balance += pot;              // whole pot, nothing withheld
+                renderBalance();
+                showToast('You won ' + money(pot) + '!');
+            } else {
+                showToast(winner.who + ' won ' + money(pot));
+            }
+            renderSweeps();
+        }
+
+        function createSweep(btn) {
+            pressPop(btn);
+            const ideas = [
+                { name: 'Friday five-a-side sweep', event: 'Arsenal v Chelsea', runners: ['Arsenal', 'Draw', 'Chelsea'] },
+                { name: 'Work lunch sweep',         event: 'Man City v Liverpool', runners: ['Man City', 'Draw', 'Liverpool'] },
+                { name: 'Group chat sweep',         event: 'Grand National', runners: ['Corach Rambler', 'I Am Maximus', 'Meetingofthewaters', 'Paddington'] },
+            ];
+            const pick = ideas[Math.floor(Math.random() * ideas.length)];
+            if (balance < SWEEP_ENTRY) { showToast('Not enough balance'); return; }
+            balance -= SWEEP_ENTRY;
+            sweepstakes.unshift({
+                id: 'sx' + Date.now(),
+                name: pick.name, host: 'You', event: pick.event,
+                runners: pick.runners,
+                entrants: [{ who: 'You' }],
+                status: 'open'
+            });
+            renderBalance();
+            renderSweeps();
+            showToast('Sweepstake created · share it with your group');
+        }
+
+        function sweepChat(id, btn) {
+            pressPop(btn);
+            const s = sweepstakes.find(x => x.id === id);
+            if (!s) return;
+            const chatId = 'sw-' + s.id;
+            if (!conversations.some(c => c.id === chatId)) {
+                conversations.unshift({
+                    id: chatId, who: s.name, group: true,
+                    members: ['You'].concat(s.entrants.map(e => e.who).filter(w => w !== 'You')),
+                    msgs: [
+                        { from: 'me', kind: 'system', text: s.event + ' · £1 each · no fees', t: 'now' },
+                        { from: 'them', who: s.host, text: 'pot is ' + money(sweepPot(s)) + ' and climbing', t: 'now' }
+                    ]
+                });
+                renderMessagesFeed();
+            }
+            closeSweeps();
+            openThread(chatId);
+        }
+
+        /* ---------------------------------------------------------------
            MESSAGES
            --------------------------------------------------------------- */
         let conversations = [
@@ -1406,12 +1834,24 @@
             return m.kind === 'bet' ? '\uD83C\uDFAF ' + m.line : m.text;
         }
 
+        // A group's `who` is a fixture name, so there is no dp-<name>.jpg for it.
+        // Show the members' faces stacked instead of falling through to the
+        // generic placeholder, which would make every group look identical.
+        function convoAvatar(c) {
+            if (!c.group) return avatarHtml(c.who, 'w-12 h-12');
+            const faces = (c.members || []).filter(m => m !== 'You').slice(0, 2);
+            if (!faces.length) return avatarHtml(c.who, 'w-12 h-12');
+            return '<div class="flex -space-x-3 shrink-0">' +
+                   faces.map(m => avatarHtml(m, 'w-9 h-9 ring-2 ring-white dark:ring-gray-900')).join('') +
+                   '</div>';
+        }
+
         function renderMessagesFeed() {
             document.getElementById('messages-feed').innerHTML = conversations.map(c => `
                 <div onclick="openThread('${esc(c.id)}')" class="flex items-center space-x-3 p-4 border-b border-gray-100/50 dark:border-gray-800/50 bg-white/40 dark:bg-gray-900/40 backdrop-blur-md cursor-pointer">
-                    ${avatarHtml(c.who, 'w-12 h-12')}
+                    ${convoAvatar(c)}
                     <div class="min-w-0 flex-1">
-                        <div class="font-bold text-sm">${esc(c.who)}</div>
+                        <div class="font-bold text-sm truncate">${esc(c.who)}${c.group ? ' <span class="text-[10px] font-normal text-gray-400">· ' + (c.members || []).length + '</span>' : ''}</div>
                         <div class="text-xs text-gray-400 truncate">${esc(lastLine(c))}</div>
                     </div>
                     <div class="text-[10px] text-gray-400 shrink-0">${esc(c.msgs[c.msgs.length - 1] ? c.msgs[c.msgs.length - 1].t : '')}</div>
@@ -1440,6 +1880,17 @@
                 const bubble = mine
                     ? 'bg-brand text-white'
                     : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100';
+                // Centred notice, not a bubble - it is the party detail, not
+                // something anyone said.
+                if (m.kind === 'system') {
+                    return `
+                    <div class="flex justify-center">
+                        <div class="text-[10px] text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded-full px-3 py-1">${esc(m.text)}</div>
+                    </div>`;
+                }
+                // In a group it matters who is talking.
+                const sender = (!mine && activeThread.group && m.who)
+                    ? `<div class="text-[10px] text-gray-400 mb-0.5 px-1">${esc(m.who)}</div>` : '';
                 if (m.kind === 'bet') {
                     return `
                     <div class="flex flex-col ${align}">
@@ -1454,7 +1905,8 @@
                 }
                 return `
                     <div class="flex flex-col ${align}">
-                        <div class="max-w-[80%] rounded-2xl px-3.5 py-2 text-sm ${bubble}">${esc(m.text)}</div>
+                        ${sender}
+                        <div class="max-w-[80%] rounded-2xl px-3.5 py-2 text-sm break-words ${bubble}">${esc(m.text)}</div>
                         <div class="text-[10px] text-gray-400 mt-1 px-1">${esc(m.t)}</div>
                     </div>`;
             }).join('');
