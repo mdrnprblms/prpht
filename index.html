@@ -188,7 +188,7 @@
            generous cap that still clamps to the real content height. */
         #sport-tabs-wrap {
             max-height: 60px;
-            transition: max-height 320ms ease, opacity 260ms ease, transform 320ms ease;
+            transition: max-height 80ms ease, opacity 65ms ease, transform 80ms ease;
         }
 
         #sport-tabs-wrap.collapsed {
@@ -866,6 +866,14 @@
             w.scrollLeft = LANDING_PAGE * w.clientWidth;
             // Only ran on scroll before, so the slip's initial state was never set.
             updateIndicator();
+            settlePage();      // don't wait out the timer for the opening state
+
+            // The settle pass must never fire under a finger that is still down
+            // (see settlePage). Passive: these only observe, never preventDefault.
+            w.addEventListener('touchstart', function () { touchHeld = true; }, { passive: true });
+            ['touchend', 'touchcancel'].forEach(function (ev) {
+                w.addEventListener(ev, function () { touchHeld = false; scheduleSettle(); }, { passive: true });
+            });
         }
 
         function renderTabs() {
@@ -1046,20 +1054,67 @@
                 ).join('');
         }
 
+        /* Chrome updates are split in two.
+
+           Anything that changes the HEIGHT of the chrome must not run while the
+           track is moving. #feed-wrapper is the flex-1 sibling of the sport
+           strip, so collapsing that strip resizes the snap container itself.
+           WebKit resolves snap offsets on the scrolling thread and abandons the
+           snap outright when the container is resized under an in-flight fling,
+           which leaves the track parked between two pages; Blink recomputes and
+           re-snaps, which is why it only shows up on iOS.
+
+           So: cheap non-reflowing updates (highlight, dots, labels) run on every
+           scroll frame, and the layout-affecting ones wait until the scroll has
+           actually settled. */
+        let settleTimer = null;
+        let touchHeld = false;
+
+        function scheduleSettle() {
+            clearTimeout(settleTimer);
+            settleTimer = setTimeout(settlePage, 140);
+        }
+
+        function settlePage() {
+            // A paused finger still mid-drag is not a settled scroll - reflowing
+            // now would strand the track exactly as a mid-fling reflow does.
+            if (touchHeld) { scheduleSettle(); return; }
+
+            const w = document.getElementById('feed-wrapper');
+            const page = currentPage();
+
+            // Safety net for a snap dropped by anything else (a rotate, the iOS
+            // URL bar resizing mid-swipe): ease onto the nearest page rather
+            // than sit between two. The scroll this starts re-runs the settle.
+            const want = page * w.clientWidth;
+            if (Math.abs(w.scrollLeft - want) > 2) {
+                w.scrollTo({ left: want, behavior: 'smooth' });
+                return;
+            }
+
+            // Sport filter only applies to the two betting feeds.
+            const wantsSports = page === PAGE_TIKTOK || page === PAGE_TRADITIONAL;
+            document.getElementById('sport-tabs-wrap').classList.toggle('collapsed', !wantsSports);
+
+            // Swapping the strip's contents is cheap but still a mutation inside
+            // the chrome, so it rides along here rather than firing mid-swipe.
+            if (page !== lastPage) {
+                lastPage = page;
+                renderTabs();
+            }
+        }
+
         function updateIndicator() {
             updateNavHighlight();          // every scroll frame, follows the finger
             const page = currentPage();
             const onTraditional = page === PAGE_TRADITIONAL;
+            scheduleSettle();
 
             document.querySelectorAll('.page-tab').forEach((t, i) => {
                 t.classList.toggle('text-white', i === page);
                 t.classList.toggle('text-gray-500', i !== page);
                 t.classList.toggle('dark:text-gray-400', i !== page);
             });
-
-            // Sport filter only applies to the two betting feeds.
-            const wantsSports = page === PAGE_TIKTOK || page === PAGE_TRADITIONAL;
-            document.getElementById('sport-tabs-wrap').classList.toggle('collapsed', !wantsSports);
 
             // Slip is traditional-feed only; the TikTok cards have their own
             // inline bet button and the bar was crowding it.
@@ -1076,14 +1131,6 @@
                     ? "feed-dot w-4 h-1.5 bg-brand rounded-full transition-all duration-300"
                     : "feed-dot w-1.5 h-1.5 bg-gray-300 dark:bg-gray-700 rounded-full transition-all duration-300";
             });
-
-            // Swap the tab strip's contents (never its height) when the page
-            // changes. Hiding the strip outright would reflow the track
-            // mid-swipe and fight the horizontal snap.
-            if (page !== lastPage) {
-                lastPage = page;
-                renderTabs();
-            }
         }
 
         // Retrigger the squish. Removing the class and forcing a reflow before
