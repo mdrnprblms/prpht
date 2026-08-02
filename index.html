@@ -38,7 +38,11 @@
                tune them there (or live via bgStyle({...}) in the console) -
                these are just the values it writes to. */
             --bg-blur: 6px;             /* post-upscale softening */
-            --bg-grain: 0.06;           /* film-grain overlay strength */
+            /* Grain strength is per-theme: the light background is a near-white
+               sheet that needs a heavier dusting to knock the glare off, while
+               the same amount over the near-black dark theme reads as noise. */
+            --bg-grain-light: 0.18;
+            --bg-grain-dark: 0.085;
             --bg-grain-blend: normal;   /* see #bg-grain */
         }
         
@@ -78,13 +82,17 @@
         #bg-grain {
             position: absolute;
             inset: 0;
-            opacity: var(--bg-grain);
+            /* Split by theme in CSS rather than re-running bgStyle() on toggle:
+               the vars are written to documentElement inline, so a single
+               --bg-grain could not vary with the .dark class. */
+            opacity: var(--bg-grain-light);
             /* NOT `overlay`: that blend is 2*backdrop*source below mid-grey, so
                against the near-black dark theme it multiplies down to nothing
                and the grain is invisible. `normal` reads on both themes. */
             mix-blend-mode: var(--bg-grain-blend);
             pointer-events: none;
         }
+        html.dark #bg-grain { opacity: var(--bg-grain-dark); }
 
         /* The bet slip belongs to the traditional feed only. id+class specificity
            beats Tailwind's `flex` display utility, which a plain `hidden` class
@@ -693,7 +701,10 @@
             let target = [249, 115, 22];
             let current = [249, 115, 22];
 
-            const BG_LIGHT = [255, 255, 255];
+            // Not pure white: a hair of warmth takes the glare off without
+            // reading as grey. Works with --bg-grain-light, which does most of
+            // the dimming - push that first if this still feels bright.
+            const BG_LIGHT = [251, 248, 244];
             const BG_DARK = [3, 7, 18];        // Tailwind gray-950, matches body
             let bg = BG_LIGHT.slice();
 
@@ -797,7 +808,12 @@
 
              blur      px of softening applied after the canvas is upscaled.
                        0 = raw low-res edges, ~12 = very soft.
-             grain     0-1 strength of the film-grain overlay.
+             grain     0-1 strength of the film-grain overlay on the DARK
+                       theme.
+             grainLight same, for the light theme. Deliberately higher: it is
+                       what takes the glare off the near-white background, so
+                       raise this (not a grey backdrop tint) if light mode
+                       still reads too bright.
              grainSize feTurbulence baseFrequency. HIGHER = finer/tighter
                        grain, lower = coarser blotches. ~1.2 is fine sand,
                        ~0.4 is chunky.
@@ -809,7 +825,7 @@
              bgStyle({ blur: 10, grain: 0.16, grainSize: 1.4 })
            in the browser console, then paste the values you like back in.
            ---------------------------------------------------------------- */
-        const BG_STYLE = { blur: 6, grain: 0.085, grainSize: 1.2, grainBlend: 'normal' };
+        const BG_STYLE = { blur: 6, grain: 0.085, grainLight: 0.18, grainSize: 1.2, grainBlend: 'normal' };
 
         function grainDataUrl(freq) {
             const svg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'>" +
@@ -823,7 +839,8 @@
             Object.assign(BG_STYLE, patch || {});
             const root = document.documentElement.style;
             root.setProperty('--bg-blur', BG_STYLE.blur + 'px');
-            root.setProperty('--bg-grain', BG_STYLE.grain);
+            root.setProperty('--bg-grain-dark', BG_STYLE.grain);
+            root.setProperty('--bg-grain-light', BG_STYLE.grainLight);
             root.setProperty('--bg-grain-blend', BG_STYLE.grainBlend);
             document.getElementById('bg-grain').style.backgroundImage = grainDataUrl(BG_STYLE.grainSize);
             return BG_STYLE;
@@ -1732,7 +1749,12 @@
             const avatars = shown.map((w, k) => {
                 const ang = (-140 + (k * (260 / Math.max(1, shown.length - 1 || 1)))) * Math.PI / 180;
                 const ax = Math.cos(ang) * RING, ay = Math.sin(ang) * RING;
-                return '<span class="absolute" style="left:calc(50% + ' + ax.toFixed(1) + 'px);top:calc(50% + ' + ay.toFixed(1) + 'px);transform:translate(-50%,-50%)">' +
+                // Offset via transform, NOT left/top. An absolute span sized by
+                // its content shrink-to-fits to the space left of the parent's
+                // edge, and Preflight's `img { max-width: 100% }` then squashes
+                // an avatar on the right of the ring into a 2px bar.
+                return '<span class="absolute" style="left:50%;top:50%;' +
+                       'transform:translate(calc(-50% + ' + ax.toFixed(1) + 'px), calc(-50% + ' + ay.toFixed(1) + 'px))">' +
                        avatarHtml(w, 'w-6 h-6 ring-2 ring-white dark:ring-gray-950') + '</span>';
             }).join('');
 
@@ -1747,7 +1769,10 @@
                             'style="background:radial-gradient(circle at 32% 28%, #FDBA74, #F97316 55%, #9A3412)"></span>' +
 
                         // 2. The sharp text layer (No background)
-                        '<span class="absolute inset-4 rounded-full flex flex-col items-center justify-center text-white z-10">' +
+                        // The glow behind is blurred to a pale wash, so white
+                        // text vanishes into the light background. Match the
+                        // gradient's deep stop instead, as .text-brand does.
+                        '<span class="absolute inset-4 rounded-full flex flex-col items-center justify-center text-orange-900 dark:text-white z-10">' +
                             '<span class="stake-line text-base leading-none">' + r.bets.length + '</span>' +
                             '<span class="text-[8px] font-bold uppercase tracking-wider opacity-80">' + (r.bets.length === 1 ? 'bet' : 'bets') + '</span>' +
                         '</span>' +
