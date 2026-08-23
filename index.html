@@ -546,7 +546,7 @@
                 <button onclick="closePmGraph()" class="text-brand font-bold text-sm shrink-0">Done</button>
             </div>
             <div id="pm-chart-stage" class="relative h-48 rounded-xl bg-gray-50 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700 overflow-hidden">
-                <svg id="pm-chart" class="absolute inset-0 w-full h-full" preserveAspectRatio="none"></svg>
+                <svg id="pm-chart" class="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
                 <div id="pm-chart-readout" class="absolute top-2 px-2 py-1 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-[11px] font-bold whitespace-nowrap hidden"></div>
             </div>
             <div id="pm-graph-date" class="text-center text-[11px] text-gray-400 font-semibold mt-2 h-4"></div>
@@ -1040,7 +1040,7 @@
                         ${fixture.selections.map(s => `
                         <button onclick="placeBet(this)" data-id="${fixture.id}-${s.name}" data-match-id="${fixture.id}" data-selection="${s.name}" data-match="${fixture.match}" data-odds="${s.odds}" class="bet-btn bet-btn-pill flex-1 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-800 dark:text-white flex flex-col items-center justify-center py-2.5 rounded-xl transition-all border border-gray-100 dark:border-gray-700 shadow-sm">
                             <span class="text-[11px] font-bold text-gray-400 bet-text-inner">&pound;1 bet ${s.name}</span>
-                            <span class="text-base font-black bet-odds-inner">${s.odds.toFixed(2)}</span>
+                            <span class="text-base font-black bet-odds-inner">&rarr; &pound;${s.odds.toFixed(2)}</span>
                         </button>`).join('')}
                     </div>` : '';
                 return `
@@ -1372,8 +1372,8 @@
                 btn.classList.add('placed');
                 if (isPill) {
                     // Pill keeps its shape when the bet is on the slip.
-                    btn.className = "bet-btn bet-btn-pill placed bg-brand text-white flex flex-col items-center justify-center py-2.5 rounded-xl transition-all shadow-md";
-                    btn.innerHTML = `<span class="text-[11px] font-bold text-lime-200">${selectionText}</span><span class="text-base font-black">&#10003;</span>`;
+                    btn.className = "bet-btn bet-btn-pill flex-1 placed bg-brand text-white flex flex-col items-center justify-center py-2.5 rounded-xl transition-all shadow-md";
+                    btn.innerHTML = `<span class="text-[11px] font-bold text-lime-200">${selectionText}</span><span class="text-base font-black">&rarr; &pound;${parseFloat(btn.getAttribute('data-odds')).toFixed(2)}</span>`;
                 } else if (isTikTok) {
                     // Same w-full + icon box as the unplaced state so swapping
                     // between them cannot nudge the column sideways.
@@ -1387,7 +1387,7 @@
                 btn.classList.remove('placed');
                 if (isPill) {
                     btn.className = "bet-btn bet-btn-pill flex-1 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-800 dark:text-white flex flex-col items-center justify-center py-2.5 rounded-xl transition-all border border-gray-100 dark:border-gray-700 shadow-sm";
-                    btn.innerHTML = `<span class="text-[11px] font-bold text-gray-400 bet-text-inner">&pound;1 bet ${selectionText}</span><span class="text-base font-black bet-odds-inner">${parseFloat(btn.getAttribute('data-odds')).toFixed(2)}</span>`;
+                    btn.innerHTML = `<span class="text-[11px] font-bold text-gray-400 bet-text-inner">&pound;1 bet ${selectionText}</span><span class="text-base font-black bet-odds-inner">&rarr; &pound;${parseFloat(btn.getAttribute('data-odds')).toFixed(2)}</span>`;
                 } else if (isTikTok) {
                     btn.className = "bet-btn bet-btn-tiktok text-gray-400 w-full flex flex-col items-center justify-center transition-all";
                     btn.innerHTML = `<svg class="w-11 h-6 bet-icon-inner" viewBox="0 0 588.47 319.03" fill="currentColor" aria-hidden="true"><use href="#icon-bet"/></svg><span class="text-[10px] font-bold mt-1 bet-text-inner">&pound;1 bet</span>`;
@@ -1860,7 +1860,7 @@
                 let d = '';
                 for (let i = 0; i <= pos; i++) d += (i ? ' L ' : 'M ') + x(i).toFixed(2) + ' ' + y(s[i].p).toFixed(2);
                 out += '<path d="' + d + '" fill="none" stroke="' + col + '" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>';
-                out += '<circle cx="' + x(pos).toFixed(2) + '" cy="' + y(s[pos].p).toFixed(2) + '" r="3.5" fill="' + col + '" vector-effect="non-scaling-stroke"/>';
+                out += '<circle cx="' + x(pos).toFixed(2) + '" cy="' + y(s[pos].p).toFixed(2) + '" r="1.8" fill="' + col + '" vector-effect="non-scaling-stroke"/>';
             });
             out += '<line x1="' + x(pos).toFixed(2) + '" y1="0" x2="' + x(pos).toFixed(2) + '" y2="' + H + '" stroke="currentColor" class="pm-chart-grid" stroke-width="1" stroke-dasharray="3 3" vector-effect="non-scaling-stroke"/>';
             svg.innerHTML = out;
@@ -1882,9 +1882,13 @@
             const readout = document.getElementById('pm-chart-readout');
             const stage = document.getElementById('pm-chart-stage');
             const top = pmState.series.map((s, si) => ({ si, p: s[pos].p })).sort((a, b) => b.p - a.p)[0];
-            if (top && top.p >= 0.5) {
+            if (top) {   // always label the leader - informative at any level
                 readout.textContent = Math.round(top.p * 100) + '% ' + pmState.fx.selections[top.si].name;
-                readout.style.left = Math.max(14, Math.min(stage.clientWidth - 14, (x(pos) / W) * stage.clientWidth)) + 'px';
+                // Centre on the cursor, but clamp by HALF THE BUBBLE WIDTH so
+                // the translateX(-50%) can never push it past either edge.
+                const bw = readout.offsetWidth;
+                const cx = (x(pos) / W) * stage.clientWidth;
+                readout.style.left = Math.max(bw / 2 + 4, Math.min(stage.clientWidth - bw / 2 - 4, cx)) + 'px';
                 readout.classList.remove('hidden');
             } else {
                 readout.classList.add('hidden');
