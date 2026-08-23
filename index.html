@@ -197,7 +197,7 @@
         /* Sport strip collapse. max-height (not display) so it animates, and a
            generous cap that still clamps to the real content height. */
         #sport-tabs-wrap {
-            max-height: 60px;
+            max-height: 44px;
             transition: max-height 80ms ease, opacity 65ms ease, transform 80ms ease;
         }
 
@@ -264,12 +264,12 @@
         </defs>
     </svg>
 
-    <header class="flex justify-between items-center p-4 border-b border-gray-100 dark:border-gray-800 w-full shrink-0 z-10 bg-[#FCF4F6]/50 dark:bg-[#040403]/50 backdrop-blur-md">
+    <header class="flex justify-between items-center py-2 px-4 border-b border-gray-100 dark:border-gray-800 w-full shrink-0 z-10 bg-[#FCF4F6]/50 dark:bg-[#040403]/50 backdrop-blur-md">
         <div class="flex-1 flex items-center justify-start">
-            <span class="text-xs text-gray-400 font-bold tracking-widest uppercase">Micro-Stakes</span>
+            <span class="text-[10px] text-gray-400 font-bold tracking-widest uppercase">Micro-Stakes</span>
         </div>
         <div class="flex-none flex justify-center">
-            <img src="logo.svg" alt="prpht" class="h-6" onerror="this.outerHTML='<span class=\'font-black text-brand text-xl\'>prpht</span>'">
+            <img src="logo.svg" alt="prpht" class="h-5" onerror="this.outerHTML='<span class=\'font-black text-brand text-lg\'>prpht</span>'">
         </div>
         <div class="flex-1 flex justify-end items-center space-x-3">
             <button onclick="toggleDarkMode()" class="text-gray-400 hover:text-brand transition-colors p-1">
@@ -277,8 +277,8 @@
                 <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
             </button>
             <div class="flex flex-col items-end">
-                <span class="text-[10px] text-gray-400 font-bold uppercase leading-none">Balance</span>
-                <span id="balance-text" class="text-xs leading-none font-bold dark:text-white transition-colors duration-300">&pound;10.00</span>
+                <span class="text-[9px] text-gray-400 font-bold uppercase leading-none">Balance</span>
+                <span id="balance-text" class="text-[11px] leading-none font-bold dark:text-white transition-colors duration-300">&pound;10.00</span>
             </div>
             <button onclick="openAccount()" aria-label="Account" class="text-gray-400 hover:text-brand transition-colors p-1">
                 <!-- Origin MUST be 0 0: <use> defaults to x=0,y=0, so a non-zero
@@ -307,7 +307,7 @@
         </div>
     </div>
 
-    <div class="bg-[#F4F8E8]/90 dark:bg-gray-900/90 backdrop-blur-md text-[#3E5210] dark:text-[#8FB026] text-xs font-semibold p-3 flex items-center space-x-2 border-b border-[#DCE8C0] dark:border-gray-800 shrink-0 z-10 transition-colors duration-300">
+    <div class="bg-[#F4F8E8]/90 dark:bg-gray-900/90 backdrop-blur-md text-[#3E5210] dark:text-[#8FB026] text-[11px] font-semibold px-3 py-1.5 flex items-center space-x-2 border-b border-[#DCE8C0] dark:border-gray-800 shrink-0 z-10 transition-colors duration-300">
         <span class="w-1.5 h-1.5 bg-[#8FB026] rounded-full inline-block shrink-0"></span>
         <span class="truncate">All bets fixed at &pound;1. You can never lose more than one pound per bet.</span>
     </div>
@@ -993,7 +993,7 @@
             // away on Messages/Friends (see #sport-tabs-wrap.collapsed).
             tabsContainer.innerHTML = sportsList.map(sport => {
                 const isActive = sport === currentSport;
-                const baseClass = "sport-tab shrink-0 flex items-center space-x-2 px-6 py-3 font-bold text-sm transition-colors cursor-pointer border-r border-gray-100 dark:border-gray-800";
+                const baseClass = "sport-tab shrink-0 flex items-center space-x-2 px-5 py-2 font-bold text-xs transition-colors cursor-pointer border-r border-gray-100 dark:border-gray-800";
                 const activeClass = isActive ? "bg-brand text-white" : "bg-transparent text-gray-600 dark:text-gray-400";
                 // The icon files are black artwork, so inactive tabs need
                 // inverting in dark mode or they vanish into the background.
@@ -1001,10 +1001,10 @@
                 // Market categories have no icon-*.svg yet, so they share the
                 // raster icon-markets.png; 'For You' uses an inline star.
                 const icon = MARKET_SPORTS.indexOf(sport) > -1
-                    ? `<img src="icon-markets.png" alt="" class="w-4 h-4 ${iconFilter}">`
+                    ? `<img src="icon-markets.png" alt="" class="w-3.5 h-3.5 ${iconFilter}">`
                     : sport === 'For You'
-                    ? `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.3 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8L12 2z"/></svg>`
-                    : `<img src="icon-${sport.toLowerCase().replace(/\s+/g, '-')}.svg" alt="" class="w-4 h-4 ${iconFilter}">`;
+                    ? `<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.3 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8L12 2z"/></svg>`
+                    : `<img src="icon-${sport.toLowerCase().replace(/\s+/g, '-')}.svg" alt="" class="w-3.5 h-3.5 ${iconFilter}">`;
                 return `
                     <button onclick="changeSport('${sport}')" class="${baseClass} ${activeClass}">
                         ${icon}
@@ -1146,7 +1146,7 @@
         function renderPageNav() {
             document.getElementById('page-nav').innerHTML = PAGES.map((p, i) => `
                 <button onclick="goToPage(${i})" data-page="${i}"
-                        class="page-tab flex-1 py-1.5 text-[11px] font-bold uppercase tracking-wider transition-colors duration-200">
+                        class="page-tab flex-1 py-1 text-[10px] font-bold uppercase tracking-wider transition-colors duration-200">
                     ${p.label}
                 </button>`).join('');
         }
