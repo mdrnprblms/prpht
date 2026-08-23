@@ -16,7 +16,7 @@
             theme: {
                 extend: {
                     fontFamily: { sans: ['Nunito', 'sans-serif'] },
-                    colors: { brand: '#BBDF32' }
+                    colors: { brand: '#A6BE47' }
                 }
             }
         }
@@ -27,12 +27,12 @@
         /* This tells the browser how to animate the custom color variable smoothly */
         @property --team-color {
             syntax: '<color>';
-            initial-value: #BBDF32;
+            initial-value: #A6BE47;
             inherits: true;
         }
 
         :root {
-            --team-color: #BBDF32;
+            --team-color: #A6BE47;
 
             /* Background finish. Both are driven by BG_STYLE in the script, so
                tune them there (or live via bgStyle({...}) in the console) -
@@ -207,7 +207,7 @@
 
     </style>
 </head>
-<body class="bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans h-screen flex flex-col relative overflow-hidden transition-colors duration-300">
+<body class="bg-[#FCF4F6] dark:bg-[#040403] text-gray-900 dark:text-gray-100 font-sans h-screen flex flex-col relative overflow-hidden transition-colors duration-300">
 
     <!-- Icon symbols. Inlined so `fill="currentColor"` can inherit each
          button's text colour, which an <img> could not do. -->
@@ -254,7 +254,7 @@
         </defs>
     </svg>
 
-    <header class="flex justify-between items-center p-4 border-b border-gray-100 dark:border-gray-800 w-full shrink-0 z-10 bg-white/50 dark:bg-gray-950/50 backdrop-blur-md">
+    <header class="flex justify-between items-center p-4 border-b border-gray-100 dark:border-gray-800 w-full shrink-0 z-10 bg-[#FCF4F6]/50 dark:bg-[#040403]/50 backdrop-blur-md">
         <div class="flex-1 flex items-center justify-start">
             <span class="text-xs text-gray-400 font-bold tracking-widest uppercase">Micro-Stakes</span>
         </div>
@@ -282,7 +282,7 @@
     <!-- PAGE NAV. The orange highlight is a separate absolutely-positioned
          element driven continuously from scrollLeft (see updateNavHighlight),
          so it tracks the finger mid-swipe instead of jumping on release. -->
-    <div class="relative shrink-0 z-10 border-b border-gray-100 dark:border-gray-800 bg-white/80 dark:bg-gray-950/80 backdrop-blur-md overflow-hidden">
+    <div class="relative shrink-0 z-10 border-b border-gray-100 dark:border-gray-800 bg-[#FCF4F6]/80 dark:bg-[#040403]/80 backdrop-blur-md overflow-hidden">
         <!-- Width must equal 1/PAGE_COUNT: updateNavHighlight advances by
              translateX(100%), i.e. exactly one slot of its own width. -->
         <div id="page-nav-highlight" class="absolute top-0 bottom-0 left-0 w-1/4 bg-brand" style="transform: translateX(0%)"></div>
@@ -293,7 +293,7 @@
          out of the way on Messages/Friends. Wrapper animates max-height so the
          collapse is a real layout change and the feeds reclaim the space. -->
     <div id="sport-tabs-wrap" class="shrink-0 z-10 overflow-hidden">
-        <div id="sport-tabs" class="flex overflow-x-auto border-b border-gray-100 dark:border-gray-800 hide-scrollbar no-scrollbar whitespace-nowrap bg-white/80 dark:bg-gray-950/80 backdrop-blur-md transition-colors duration-300">
+        <div id="sport-tabs" class="flex overflow-x-auto border-b border-gray-100 dark:border-gray-800 hide-scrollbar no-scrollbar whitespace-nowrap bg-[#FCF4F6]/80 dark:bg-[#040403]/80 backdrop-blur-md transition-colors duration-300">
         </div>
     </div>
 
@@ -393,7 +393,7 @@
     </div>
 
     <!-- ACCOUNT ------------------------------------------------------------ -->
-    <div id="account-page" class="fixed inset-0 z-[60] bg-white dark:bg-gray-950 flex flex-col transform translate-x-full transition-transform duration-300">
+    <div id="account-page" class="fixed inset-0 z-[60] bg-[#FCF4F6] dark:bg-[#040403] flex flex-col transform translate-x-full transition-transform duration-300">
         <div class="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
             <button onclick="closeAccount()" class="text-brand font-bold text-sm">&larr; Back</button>
             <span class="font-bold">Account</span>
@@ -446,7 +446,7 @@
     <!-- MESSAGE THREAD ------------------------------------------------------ -->
     <!-- SWEEPSTAKES MODE. Deliberately a separate mode rather than a feed tab:
          it is not sportsbook activity, no odds and no house involvement. -->
-    <div id="sweeps-page" class="fixed inset-0 z-[60] bg-white dark:bg-gray-950 flex flex-col transform translate-x-full transition-transform duration-300">
+    <div id="sweeps-page" class="fixed inset-0 z-[60] bg-[#FCF4F6] dark:bg-[#040403] flex flex-col transform translate-x-full transition-transform duration-300">
         <div class="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
             <button onclick="closeSweeps()" class="text-brand font-bold text-sm">&larr; Back</button>
             <span class="font-bold">Sweepstakes</span>
@@ -466,7 +466,7 @@
 
     <!-- NEW SWEEPSTAKE. z above the sweeps page so it can be opened from there
          as well as from the Friends messages header. -->
-    <div id="new-sweep-page" class="fixed inset-0 z-[65] bg-white dark:bg-gray-950 flex flex-col transform translate-x-full transition-transform duration-300">
+    <div id="new-sweep-page" class="fixed inset-0 z-[65] bg-[#FCF4F6] dark:bg-[#040403] flex flex-col transform translate-x-full transition-transform duration-300">
         <div class="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
             <button onclick="closeNewSweep()" class="text-brand font-bold text-sm">Cancel</button>
             <span class="font-bold">New sweepstake</span>
@@ -509,7 +509,7 @@
         </div>
     </div>
 
-    <div id="thread-page" class="fixed inset-0 z-[60] bg-white dark:bg-gray-950 flex flex-col transform translate-x-full transition-transform duration-300">
+    <div id="thread-page" class="fixed inset-0 z-[60] bg-[#FCF4F6] dark:bg-[#040403] flex flex-col transform translate-x-full transition-transform duration-300">
         <div class="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
             <button onclick="closeThread()" class="text-brand font-bold text-sm">&larr; Back</button>
             <span id="thread-name" class="font-bold">Thread</span>
@@ -576,7 +576,7 @@
             { id: 'y1', sport: 'For You', color: '#EF0107', league: 'Premier League', time: '12:30 - Sat 26 Jul', match: 'Arsenal v Chelsea', market: 'Bet Builder', selections: [{name: 'Saka & Odegaard', odds: 29.00, line: 'Saka to assist Odegaard and Odegaard to assist Saka'}], target: 0 },
             { id: 'y2', sport: 'For You', color: '#6CABDD', league: 'Premier League', time: '17:30 - Sat 26 Jul', match: 'Man City v Liverpool', market: 'Long Shot', selections: [{name: 'Haaland hat-trick', odds: 41.00, line: 'Haaland to score a hat-trick and Manchester City to win 4-0'}], target: 0 },
             { id: 'y3', sport: 'For You', color: '#004D98', league: 'La Liga', time: '16:00 - Sun 27 Jul', match: 'Barcelona v Real Madrid', market: 'Bet Builder', selections: [{name: 'Goals in both halves', odds: 12.00, line: 'Both teams to score in both halves of El Clasico'}], target: 0 },
-            { id: 'y4', sport: 'For You', color: '#BBDF32', league: 'Aintree', time: '16:00 - Tomorrow', match: 'Grand National', market: 'Double', selections: [{name: 'Rambler & Maximus', odds: 34.00, line: 'Corach Rambler to win the Grand National and I Am Maximus to place'}], target: 0 },
+            { id: 'y4', sport: 'For You', color: '#A6BE47', league: 'Aintree', time: '16:00 - Tomorrow', match: 'Grand National', market: 'Double', selections: [{name: 'Rambler & Maximus', odds: 34.00, line: 'Corach Rambler to win the Grand National and I Am Maximus to place'}], target: 0 },
             { id: 'y5', sport: 'For You', color: '#61AD34', league: 'Wimbledon', time: '13:00 - Wed 30 Jul', match: 'Djokovic v Alcaraz', market: 'Bet Builder', selections: [{name: 'Straight sets', odds: 8.50, line: 'Djokovic to win in straight sets and drop fewer than six games'}], target: 0 },
             { id: 'y6', sport: 'For You', color: '#DC052D', league: 'Bundesliga', time: '14:30 - Sun 27 Jul', match: 'Bayern Munich v Dortmund', market: 'Bet Builder', selections: [{name: 'Corners & cards', odds: 16.00, line: 'Over 12 corners and 5 or more cards in Der Klassiker'}], target: 0 },
             { id: 'y7', sport: 'For You', color: '#FDB927', league: 'NBA', time: '01:30 - Wed 30 Jul', match: 'Lakers v Warriors', market: 'Long Shot', selections: [{name: 'Curry 8 threes', odds: 23.00, line: 'Steph Curry to sink 8 threes and the Warriors to win by 20'}], target: 0 },
@@ -592,36 +592,36 @@
             { id: 'f6', sport: 'Football', color: '#004170', league: 'Ligue 1', time: '20:00 - Tue 29 Jul', match: 'PSG v Marseille', market: 'Match Result', selections: [{name: 'PSG', odds: 1.45, line: 'PSG to beat Marseille within 90 minutes'}, {name: 'Draw', odds: 4.50, line: 'Le Classique to finish all square'}, {name: 'Marseille', odds: 6.50, line: 'Marseille to win away in Paris'}], target: 0 },
 
             // RACING
-            { id: 'r1', sport: 'Racing', color: '#BBDF32', league: 'Ascot', time: '13:15 - Today', match: 'King George VI Stakes', market: 'To Win', selections: [{name: 'Auguste Rodin', odds: 2.50, line: 'Auguste Rodin to win the King George VI Stakes'}, {name: 'Rebel Romance', odds: 4.00, line: 'Rebel Romance to win the King George VI Stakes'}, {name: 'Luxembourg', odds: 6.50, line: 'Luxembourg to win the King George VI Stakes'}], target: 0 },
-            { id: 'r2', sport: 'Racing', color: '#BBDF32', league: 'Cheltenham', time: '14:30 - Today', match: 'Gold Cup', market: 'To Win', selections: [{name: 'Galopin Des Champs', odds: 1.80, line: 'Galopin Des Champs to win the Cheltenham Gold Cup'}, {name: 'Fastorslow', odds: 5.00, line: 'Fastorslow to win the Cheltenham Gold Cup'}, {name: 'Gerri Colombe', odds: 7.00, line: 'Gerri Colombe to win the Cheltenham Gold Cup'}], target: 1 },
-            { id: 'r3', sport: 'Racing', color: '#BBDF32', league: 'Newmarket', time: '15:45 - Today', match: 'Guineas Stakes', market: 'To Win', selections: [{name: 'City Of Troy', odds: 2.10, line: 'City Of Troy to win the Guineas Stakes'}, {name: 'Rosallion', odds: 3.50, line: 'Rosallion to win the Guineas Stakes'}, {name: 'Ghostwriter', odds: 8.00, line: 'Ghostwriter to win the Guineas Stakes'}], target: 0 },
-            { id: 'r4', sport: 'Racing', color: '#BBDF32', league: 'Aintree', time: '16:00 - Tomorrow', match: 'Grand National', market: 'To Win', selections: [{name: 'Corach Rambler', odds: 6.00, line: 'Corach Rambler to win the Grand National'}, {name: 'I Am Maximus', odds: 8.00, line: 'I Am Maximus to win the Grand National'}, {name: 'Meetingofthewaters', odds: 10.0, line: 'Meetingofthewaters to win the Grand National'}], target: 2 },
-            { id: 'r5', sport: 'Racing', color: '#BBDF32', league: 'Goodwood', time: '17:15 - Tomorrow', match: 'Sussex Stakes', market: 'To Win', selections: [{name: 'Paddington', odds: 1.50, line: 'Paddington to win the Sussex Stakes'}, {name: 'Inspiral', odds: 4.50, line: 'Inspiral to win the Sussex Stakes'}, {name: 'Chaldean', odds: 9.00, line: 'Chaldean to win the Sussex Stakes'}], target: 0 },
-            { id: 'r6', sport: 'Racing', color: '#BBDF32', league: 'York', time: '18:30 - Tomorrow', match: 'Juddmonte International', market: 'To Win', selections: [{name: 'Mostahdaf', odds: 3.00, line: 'Mostahdaf to win the Juddmonte International'}, {name: 'Nashwa', odds: 5.00, line: 'Nashwa to win the Juddmonte International'}, {name: 'King Of Steel', odds: 5.50, line: 'King Of Steel to win the Juddmonte International'}], target: 1 },
+            { id: 'r1', sport: 'Racing', color: '#A6BE47', league: 'Ascot', time: '13:15 - Today', match: 'King George VI Stakes', market: 'To Win', selections: [{name: 'Auguste Rodin', odds: 2.50, line: 'Auguste Rodin to win the King George VI Stakes'}, {name: 'Rebel Romance', odds: 4.00, line: 'Rebel Romance to win the King George VI Stakes'}, {name: 'Luxembourg', odds: 6.50, line: 'Luxembourg to win the King George VI Stakes'}], target: 0 },
+            { id: 'r2', sport: 'Racing', color: '#A6BE47', league: 'Cheltenham', time: '14:30 - Today', match: 'Gold Cup', market: 'To Win', selections: [{name: 'Galopin Des Champs', odds: 1.80, line: 'Galopin Des Champs to win the Cheltenham Gold Cup'}, {name: 'Fastorslow', odds: 5.00, line: 'Fastorslow to win the Cheltenham Gold Cup'}, {name: 'Gerri Colombe', odds: 7.00, line: 'Gerri Colombe to win the Cheltenham Gold Cup'}], target: 1 },
+            { id: 'r3', sport: 'Racing', color: '#A6BE47', league: 'Newmarket', time: '15:45 - Today', match: 'Guineas Stakes', market: 'To Win', selections: [{name: 'City Of Troy', odds: 2.10, line: 'City Of Troy to win the Guineas Stakes'}, {name: 'Rosallion', odds: 3.50, line: 'Rosallion to win the Guineas Stakes'}, {name: 'Ghostwriter', odds: 8.00, line: 'Ghostwriter to win the Guineas Stakes'}], target: 0 },
+            { id: 'r4', sport: 'Racing', color: '#A6BE47', league: 'Aintree', time: '16:00 - Tomorrow', match: 'Grand National', market: 'To Win', selections: [{name: 'Corach Rambler', odds: 6.00, line: 'Corach Rambler to win the Grand National'}, {name: 'I Am Maximus', odds: 8.00, line: 'I Am Maximus to win the Grand National'}, {name: 'Meetingofthewaters', odds: 10.0, line: 'Meetingofthewaters to win the Grand National'}], target: 2 },
+            { id: 'r5', sport: 'Racing', color: '#A6BE47', league: 'Goodwood', time: '17:15 - Tomorrow', match: 'Sussex Stakes', market: 'To Win', selections: [{name: 'Paddington', odds: 1.50, line: 'Paddington to win the Sussex Stakes'}, {name: 'Inspiral', odds: 4.50, line: 'Inspiral to win the Sussex Stakes'}, {name: 'Chaldean', odds: 9.00, line: 'Chaldean to win the Sussex Stakes'}], target: 0 },
+            { id: 'r6', sport: 'Racing', color: '#A6BE47', league: 'York', time: '18:30 - Tomorrow', match: 'Juddmonte International', market: 'To Win', selections: [{name: 'Mostahdaf', odds: 3.00, line: 'Mostahdaf to win the Juddmonte International'}, {name: 'Nashwa', odds: 5.00, line: 'Nashwa to win the Juddmonte International'}, {name: 'King Of Steel', odds: 5.50, line: 'King Of Steel to win the Juddmonte International'}], target: 1 },
 
             // TENNIS
             { id: 't1', sport: 'Tennis', color: '#61AD34', league: 'Wimbledon', time: '13:00 - Wed 30 Jul', match: 'Djokovic v Alcaraz', market: 'Match Winner', selections: [{name: 'Djokovic', odds: 1.65, line: 'Novak Djokovic to beat Carlos Alcaraz at Wimbledon'}, {name: 'Alcaraz', odds: 2.20, line: 'Carlos Alcaraz to beat Novak Djokovic at Wimbledon'}], target: 0 },
             { id: 't2', sport: 'Tennis', color: '#00549A', league: 'US Open', time: '18:00 - Wed 30 Jul', match: 'Sinner v Medvedev', market: 'Match Winner', selections: [{name: 'Sinner', odds: 1.80, line: 'Jannik Sinner to beat Daniil Medvedev at the US Open'}, {name: 'Medvedev', odds: 2.00, line: 'Daniil Medvedev to beat Jannik Sinner at the US Open'}], target: 1 },
             { id: 't3', sport: 'Tennis', color: '#A9C23F', league: 'Roland Garros', time: '11:00 - Thu 31 Jul', match: 'Swiatek v Sabalenka', market: 'Match Winner', selections: [{name: 'Swiatek', odds: 1.40, line: 'Iga Swiatek to beat Aryna Sabalenka at Roland Garros'}, {name: 'Sabalenka', odds: 2.90, line: 'Aryna Sabalenka to beat Iga Swiatek at Roland Garros'}], target: 0 },
             { id: 't4', sport: 'Tennis', color: '#0078D7', league: 'Australian Open', time: '09:00 - Thu 31 Jul', match: 'Gauff v Rybakina', market: 'Match Winner', selections: [{name: 'Gauff', odds: 2.10, line: 'Coco Gauff to beat Elena Rybakina in Melbourne'}, {name: 'Rybakina', odds: 1.70, line: 'Elena Rybakina to beat Coco Gauff in Melbourne'}], target: 1 },
-            { id: 't5', sport: 'Tennis', color: '#BBDF32', league: 'Miami Open', time: '14:00 - Fri 01 Aug', match: 'Zverev v Tsitsipas', market: 'Match Winner', selections: [{name: 'Zverev', odds: 1.90, line: 'Alexander Zverev to beat Stefanos Tsitsipas in Miami'}, {name: 'Tsitsipas', odds: 1.90, line: 'Stefanos Tsitsipas to beat Alexander Zverev in Miami'}], target: 0 },
-            { id: 't6', sport: 'Tennis', color: '#BBDF32', league: 'Indian Wells', time: '16:30 - Fri 01 Aug', match: 'Jabeur v Pegula', market: 'Match Winner', selections: [{name: 'Jabeur', odds: 2.30, line: 'Ons Jabeur to beat Jessica Pegula at Indian Wells'}, {name: 'Pegula', odds: 1.60, line: 'Jessica Pegula to beat Ons Jabeur at Indian Wells'}], target: 1 },
+            { id: 't5', sport: 'Tennis', color: '#A6BE47', league: 'Miami Open', time: '14:00 - Fri 01 Aug', match: 'Zverev v Tsitsipas', market: 'Match Winner', selections: [{name: 'Zverev', odds: 1.90, line: 'Alexander Zverev to beat Stefanos Tsitsipas in Miami'}, {name: 'Tsitsipas', odds: 1.90, line: 'Stefanos Tsitsipas to beat Alexander Zverev in Miami'}], target: 0 },
+            { id: 't6', sport: 'Tennis', color: '#A6BE47', league: 'Indian Wells', time: '16:30 - Fri 01 Aug', match: 'Jabeur v Pegula', market: 'Match Winner', selections: [{name: 'Jabeur', odds: 2.30, line: 'Ons Jabeur to beat Jessica Pegula at Indian Wells'}, {name: 'Pegula', odds: 1.60, line: 'Jessica Pegula to beat Ons Jabeur at Indian Wells'}], target: 1 },
 
             // CRICKET
-            { id: 'c1', sport: 'Cricket', color: '#BBDF32', league: 'The Ashes', time: '11:00 - Wed 30 Jul', match: 'England v Australia', market: 'Match Result', selections: [{name: 'England', odds: 2.80, line: 'England to beat Australia in the Ashes test'}, {name: 'Draw', odds: 3.20, line: 'The Ashes test to end in a draw'}, {name: 'Australia', odds: 2.20, line: 'Australia to beat England in the Ashes test'}], target: 1 },
-            { id: 'c2', sport: 'Cricket', color: '#BBDF32', league: 'T20 World Cup', time: '14:00 - Wed 30 Jul', match: 'India v Pakistan', market: 'Match Winner', selections: [{name: 'India', odds: 1.60, line: 'India to beat Pakistan at the T20 World Cup'}, {name: 'Pakistan', odds: 2.30, line: 'Pakistan to beat India at the T20 World Cup'}], target: 0 },
-            { id: 'c3', sport: 'Cricket', color: '#BBDF32', league: 'IPL', time: '16:00 - Thu 31 Jul', match: 'Chennai v Mumbai', market: 'Match Winner', selections: [{name: 'Chennai', odds: 1.90, line: 'Chennai Super Kings to beat the Mumbai Indians'}, {name: 'Mumbai', odds: 1.90, line: 'Mumbai Indians to beat the Chennai Super Kings'}], target: 1 },
-            { id: 'c4', sport: 'Cricket', color: '#BBDF32', league: 'Test Series', time: '09:00 - Fri 01 Aug', match: 'South Africa v New Zealand', market: 'Match Result', selections: [{name: 'South Africa', odds: 2.10, line: 'South Africa to beat New Zealand in the test'}, {name: 'Draw', odds: 4.50, line: 'The test match to end in a draw'}, {name: 'New Zealand', odds: 2.60, line: 'New Zealand to beat South Africa in the test'}], target: 0 },
-            { id: 'c5', sport: 'Cricket', color: '#BBDF32', league: 'Big Bash', time: '08:30 - Sat 02 Aug', match: 'Perth Scorchers v Sydney Sixers', market: 'Match Winner', selections: [{name: 'Perth Scorchers', odds: 1.75, line: 'Perth Scorchers to beat the Sydney Sixers'}, {name: 'Sydney Sixers', odds: 2.10, line: 'Sydney Sixers to beat the Perth Scorchers'}], target: 1 },
-            { id: 'c6', sport: 'Cricket', color: '#BBDF32', league: 'The Hundred', time: '18:00 - Sun 03 Aug', match: 'Oval Invincibles v London Spirit', market: 'Match Winner', selections: [{name: 'Oval Invincibles', odds: 1.85, line: 'Oval Invincibles to beat London Spirit'}, {name: 'London Spirit', odds: 1.95, line: 'London Spirit to beat Oval Invincibles'}], target: 0 },
+            { id: 'c1', sport: 'Cricket', color: '#A6BE47', league: 'The Ashes', time: '11:00 - Wed 30 Jul', match: 'England v Australia', market: 'Match Result', selections: [{name: 'England', odds: 2.80, line: 'England to beat Australia in the Ashes test'}, {name: 'Draw', odds: 3.20, line: 'The Ashes test to end in a draw'}, {name: 'Australia', odds: 2.20, line: 'Australia to beat England in the Ashes test'}], target: 1 },
+            { id: 'c2', sport: 'Cricket', color: '#A6BE47', league: 'T20 World Cup', time: '14:00 - Wed 30 Jul', match: 'India v Pakistan', market: 'Match Winner', selections: [{name: 'India', odds: 1.60, line: 'India to beat Pakistan at the T20 World Cup'}, {name: 'Pakistan', odds: 2.30, line: 'Pakistan to beat India at the T20 World Cup'}], target: 0 },
+            { id: 'c3', sport: 'Cricket', color: '#A6BE47', league: 'IPL', time: '16:00 - Thu 31 Jul', match: 'Chennai v Mumbai', market: 'Match Winner', selections: [{name: 'Chennai', odds: 1.90, line: 'Chennai Super Kings to beat the Mumbai Indians'}, {name: 'Mumbai', odds: 1.90, line: 'Mumbai Indians to beat the Chennai Super Kings'}], target: 1 },
+            { id: 'c4', sport: 'Cricket', color: '#A6BE47', league: 'Test Series', time: '09:00 - Fri 01 Aug', match: 'South Africa v New Zealand', market: 'Match Result', selections: [{name: 'South Africa', odds: 2.10, line: 'South Africa to beat New Zealand in the test'}, {name: 'Draw', odds: 4.50, line: 'The test match to end in a draw'}, {name: 'New Zealand', odds: 2.60, line: 'New Zealand to beat South Africa in the test'}], target: 0 },
+            { id: 'c5', sport: 'Cricket', color: '#A6BE47', league: 'Big Bash', time: '08:30 - Sat 02 Aug', match: 'Perth Scorchers v Sydney Sixers', market: 'Match Winner', selections: [{name: 'Perth Scorchers', odds: 1.75, line: 'Perth Scorchers to beat the Sydney Sixers'}, {name: 'Sydney Sixers', odds: 2.10, line: 'Sydney Sixers to beat the Perth Scorchers'}], target: 1 },
+            { id: 'c6', sport: 'Cricket', color: '#A6BE47', league: 'The Hundred', time: '18:00 - Sun 03 Aug', match: 'Oval Invincibles v London Spirit', market: 'Match Winner', selections: [{name: 'Oval Invincibles', odds: 1.85, line: 'Oval Invincibles to beat London Spirit'}, {name: 'London Spirit', odds: 1.95, line: 'London Spirit to beat Oval Invincibles'}], target: 0 },
 
             // BASKETBALL
             { id: 'b1', sport: 'Basketball', color: '#FDB927', league: 'NBA', time: '01:30 - Wed 30 Jul', match: 'Lakers v Warriors', market: 'Moneyline', selections: [{name: 'Lakers', odds: 2.10, line: 'The Lakers to beat the Warriors'}, {name: 'Warriors', odds: 1.75, line: 'The Warriors to beat the Lakers'}], target: 1 },
             { id: 'b2', sport: 'Basketball', color: '#007A33', league: 'NBA', time: '02:00 - Wed 30 Jul', match: 'Celtics v Heat', market: 'Moneyline', selections: [{name: 'Celtics', odds: 1.50, line: 'The Celtics to beat the Heat'}, {name: 'Heat', odds: 2.60, line: 'The Heat to beat the Celtics'}], target: 0 },
-            { id: 'b3', sport: 'Basketball', color: '#BBDF32', league: 'EuroLeague', time: '19:30 - Thu 31 Jul', match: 'Real Madrid v Olympiacos', market: 'Moneyline', selections: [{name: 'Real Madrid', odds: 1.65, line: 'Real Madrid to beat Olympiacos in the EuroLeague'}, {name: 'Olympiacos', odds: 2.25, line: 'Olympiacos to beat Real Madrid in the EuroLeague'}], target: 0 },
+            { id: 'b3', sport: 'Basketball', color: '#A6BE47', league: 'EuroLeague', time: '19:30 - Thu 31 Jul', match: 'Real Madrid v Olympiacos', market: 'Moneyline', selections: [{name: 'Real Madrid', odds: 1.65, line: 'Real Madrid to beat Olympiacos in the EuroLeague'}, {name: 'Olympiacos', odds: 2.25, line: 'Olympiacos to beat Real Madrid in the EuroLeague'}], target: 0 },
             { id: 'b4', sport: 'Basketball', color: '#1D1160', league: 'NBA', time: '03:00 - Fri 01 Aug', match: 'Nuggets v Suns', market: 'Moneyline', selections: [{name: 'Nuggets', odds: 1.85, line: 'The Nuggets to beat the Suns'}, {name: 'Suns', odds: 1.95, line: 'The Suns to beat the Nuggets'}], target: 1 },
             { id: 'b5', sport: 'Basketball', color: '#00471B', league: 'NBA', time: '04:30 - Sat 02 Aug', match: 'Bucks v 76ers', market: 'Moneyline', selections: [{name: 'Bucks', odds: 1.70, line: 'The Bucks to beat the 76ers'}, {name: '76ers', odds: 2.15, line: 'The 76ers to beat the Bucks'}], target: 0 },
-            { id: 'b6', sport: 'Basketball', color: '#BBDF32', league: 'EuroLeague', time: '20:00 - Sun 03 Aug', match: 'Panathinaikos v Monaco', market: 'Moneyline', selections: [{name: 'Panathinaikos', odds: 1.90, line: 'Panathinaikos to beat Monaco in the EuroLeague'}, {name: 'Monaco', odds: 1.90, line: 'Monaco to beat Panathinaikos in the EuroLeague'}], target: 1 },
+            { id: 'b6', sport: 'Basketball', color: '#A6BE47', league: 'EuroLeague', time: '20:00 - Sun 03 Aug', match: 'Panathinaikos v Monaco', market: 'Moneyline', selections: [{name: 'Panathinaikos', odds: 1.90, line: 'Panathinaikos to beat Monaco in the EuroLeague'}, {name: 'Monaco', odds: 1.90, line: 'Monaco to beat Panathinaikos in the EuroLeague'}], target: 1 },
 
             // LOVE ISLAND - reality markets. Same shape as every other sport:
             // `match` is the market header, `league` the show strand.
@@ -698,14 +698,27 @@
             const img = ctx.createImageData(W, H);
             const data = img.data;
 
-            let target = [187, 223, 50];
-            let current = [187, 223, 50];
+            /* Ambient wash: the muted companions shared by the coolors
+               palettes (granite green, lavender grey, pacific cyan, wisteria
+               blue). The field drifts slowly between these; the team colour
+               stays the bright end of the ramp so cards still tint the room. */
+            const WASH = [
+                [80, 108, 100],    // #506C64 granite green
+                [125, 132, 178],   // #7D84B2 lavender grey
+                [85, 130, 139],    // #55828B pacific cyan
+                [143, 166, 203],   // #8FA6CB wisteria blue
+            ];
+            const TEAM = [166, 190, 71];       // #A6BE47 default bright stop
+            // Colour ramp per frame: [0]=trough, [1]=mid cloud, [2]=bright end.
+            const target = [WASH[0].slice(), WASH[2].slice(), TEAM.slice()];
+            const current = [WASH[0].slice(), WASH[2].slice(), TEAM.slice()];
 
-            // Not pure white: a hair of warmth takes the glare off without
-            // reading as grey. Works with --bg-grain-light, which does most of
-            // the dimming - push that first if this still feels bright.
-            const BG_LIGHT = [251, 248, 244];
-            const BG_DARK = [3, 7, 18];        // Tailwind gray-950, matches body
+            // Not pure white: blended toward the palettes' lavender blush
+            // (#F9E9EC) so the light field sits in the same family as the wash
+            // colours. --bg-grain-light still does most of the dimming - push
+            // that first if this still feels bright.
+            const BG_LIGHT = [252, 244, 246];
+            const BG_DARK = [4, 4, 3];         // palette anchor black #040403, matches body
             let bg = BG_LIGHT.slice();
 
             // Unsigned shifts throughout: a signed >> here skews the
@@ -738,14 +751,24 @@
 
             function setColor(hex) {
                 const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || '');
-                if (m) target = [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)];
+                if (m) for (let i = 0; i < 3; i++) target[2][i] = parseInt(m[i + 1], 16);
             }
 
             function isDark() { return document.documentElement.classList.contains('dark'); }
 
             function frame(ts) {
                 const t = ts * 0.00007;
-                for (let i = 0; i < 3; i++) current[i] += (target[i] - current[i]) * 0.05;
+                // Ambient drift: slide both wash stops around the companion
+                // ring (granite -> lavender -> pacific -> wisteria) over a few
+                // minutes, out of phase, so the field never sits still. The
+                // bright stop eases toward whatever team card is in view.
+                for (let s = 0; s < 2; s++) {
+                    const ph = (Math.sin(ts * 0.00003 + s * 2.1) + 1) / 2 * (WASH.length - 1);
+                    const i0 = Math.floor(ph), i1 = Math.min(i0 + 1, WASH.length - 1), k = ph - i0;
+                    for (let i = 0; i < 3; i++) target[s][i] = WASH[i0][i] + (WASH[i1][i] - WASH[i0][i]) * k;
+                }
+                for (let s = 0; s < 3; s++)
+                    for (let i = 0; i < 3; i++) current[s][i] += (target[s][i] - current[s][i]) * 0.05;
 
                 // The theme background is painted BY the canvas, not left to the
                 // body. iOS Safari would not reliably repaint the propagated
@@ -761,7 +784,6 @@
                 // which is backwards: on a white page the blobs tint the card
                 // backgrounds pink and drag muted text under the AA threshold.
                 const strength = dark ? 0.62 : 0.5;
-                const cr = current[0], cg = current[1], cb = current[2];
 
                 let p = 0;
                 for (let y = 0; y < H; y++) {
@@ -775,17 +797,34 @@
                         const v = fbm(nx + wx * 1.9 + t * 0.6, ny + wy * 1.9);
 
                         const a = smoothstep(0.50, 0.74, v) * strength;
-                        let r = cr, g = cg, b = cb;
                         if (a > 0) {
-                            const core = smoothstep(0.70, 0.82, v);   // bright hotspot
-                            r += (255 - cr) * core * 0.75;
-                            g += (255 - cg) * core * 0.75;
-                            b += (255 - cb) * core * 0.75;
+                            // Two-segment ramp across the blob: trough colour
+                            // -> mid cloud -> team colour, with a whisper of
+                            // white lift at the crest for glow.
+                            const tt = smoothstep(0.50, 0.86, v);
+                            let r, g, b;
+                            if (tt < 0.5) {
+                                const k = tt * 2;
+                                r = current[0][0] + (current[1][0] - current[0][0]) * k;
+                                g = current[0][1] + (current[1][1] - current[0][1]) * k;
+                                b = current[0][2] + (current[1][2] - current[0][2]) * k;
+                            } else {
+                                const k = (tt - 0.5) * 2;
+                                r = current[1][0] + (current[2][0] - current[1][0]) * k;
+                                g = current[1][1] + (current[2][1] - current[1][1]) * k;
+                                b = current[1][2] + (current[2][2] - current[1][2]) * k;
+                            }
+                            const core = smoothstep(0.78, 0.90, v) * (dark ? 0.35 : 0.22);
+                            r += (255 - r) * core;
+                            g += (255 - g) * core;
+                            b += (255 - b) * core;
+                            // Composite over the theme background; output is opaque.
+                            data[p]     = bR + (r - bR) * a;
+                            data[p + 1] = bG + (g - bG) * a;
+                            data[p + 2] = bB + (b - bB) * a;
+                        } else {
+                            data[p] = bR; data[p + 1] = bG; data[p + 2] = bB;
                         }
-                        // Composite over the theme background; output is opaque.
-                        data[p]     = bR + (r - bR) * a;
-                        data[p + 1] = bG + (g - bG) * a;
-                        data[p + 2] = bB + (b - bB) * a;
                         data[p + 3] = 255;
                     }
                 }
@@ -988,7 +1027,7 @@
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
-                        const newColor = entry.target.getAttribute('data-color') || '#BBDF32';
+                        const newColor = entry.target.getAttribute('data-color') || '#A6BE47';
                         document.documentElement.style.setProperty('--team-color', newColor);
                         blobField.setColor(newColor);   // canvas eases toward it
                     }
@@ -1813,7 +1852,7 @@
                         '<span class="absolute inset-3 rounded-full ' + (open ? 'ring-4 ring-brand' : 'ring-2 ring-brand/40') + '"></span>' +
                         // 1. The blurred background layer (Glow)
                         '<span class="absolute inset-4 rounded-full blur-2xl opacity-80" ' +
-                            'style="background:radial-gradient(circle at 32% 28%, #E4F0A3, #BBDF32 55%, #3E5210)"></span>' +
+                            'style="background:radial-gradient(circle at 32% 28%, #D6E0A8, #A6BE47 55%, #3E5210)"></span>' +
 
                         // 2. The sharp text layer (No background)
                         // The glow behind is blurred to a pale wash, so white
@@ -2244,7 +2283,7 @@
                 { from: 'them', text: 'put a quid on this and retire', t: '08:40' },
                 { from: 'them', kind: 'bet', matchId: 'y2', selection: 'Haaland hat-trick', match: 'Man City v Liverpool', odds: 41.00, line: 'Haaland to score a hat-trick and Manchester City to win 4-0', t: '08:40' }
             ]},
-            { id: 'm3', who: 'Dee', initials: 'D', colour: '#BBDF32', msgs: [
+            { id: 'm3', who: 'Dee', initials: 'D', colour: '#A6BE47', msgs: [
                 { from: 'me', text: 'grand national shout?', t: 'Yesterday' },
                 { from: 'them', text: 'corach rambler. trust me', t: 'Yesterday' }
             ]},
