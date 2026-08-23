@@ -272,10 +272,6 @@
             <img src="logo.svg" alt="prpht" class="h-5" onerror="this.outerHTML='<span class=\'font-black text-brand text-lg\'>prpht</span>'">
         </div>
         <div class="flex-1 flex justify-end items-center space-x-3">
-            <button onclick="toggleDarkMode()" class="text-gray-400 hover:text-brand transition-colors p-1">
-                <svg class="w-5 h-5 dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-                <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-            </button>
             <div class="flex flex-col items-end">
                 <span class="text-[9px] text-gray-400 font-bold uppercase leading-none">Balance</span>
                 <span id="balance-text" class="text-[11px] leading-none font-bold dark:text-white transition-colors duration-300">&pound;10.00</span>
@@ -436,6 +432,17 @@
                     <div class="text-[10px] text-gray-400 font-bold uppercase mt-1">Win rate</div>
                 </div>
             </div>
+            <button onclick="toggleDarkMode()" class="w-full p-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between text-left">
+                <div class="flex items-center space-x-3">
+                    <svg class="w-5 h-5 text-gray-400 dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                    <svg class="w-5 h-5 text-gray-400 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    <div>
+                        <div class="font-bold text-sm">Appearance</div>
+                        <div class="text-[11px] text-gray-400 mt-0.5">Tap to switch &middot; currently <span id="darkmode-label">Light</span> mode</div>
+                    </div>
+                </div>
+                <span class="text-brand font-bold text-lg">&rsaquo;</span>
+            </button>
             <button onclick="closeAccount(); openSweeps();" class="w-full p-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between text-left">
                 <div>
                     <div class="font-bold text-sm">Sweepstakes</div>
@@ -570,8 +577,13 @@
     <div id="toast" class="fixed left-1/2 -translate-x-1/2 z-[80] px-4 py-2.5 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-bold shadow-lg opacity-0 pointer-events-none transition-all duration-300" style="bottom: 6rem"></div>
 
 <script>
+        function syncDarkLabel() {
+            const lbl = document.getElementById('darkmode-label');
+            if (lbl) lbl.textContent = document.documentElement.classList.contains('dark') ? 'Dark' : 'Light';
+        }
         function toggleDarkMode() {
             document.documentElement.classList.toggle('dark');
+            syncDarkLabel();
         }
 
         function getFraction(decimal) {
@@ -601,6 +613,9 @@
         // (raster for now - the SVG editor keeps crashing) instead of per-sport
         // icon-*.svg files.
         const MARKET_SPORTS = ['Politics', 'Gaming', 'Energy', 'Tech', 'Crypto'];
+        // Real category behind each 'For You' hand-pick, used for the card
+        // category icon ('For You' itself has no icon file).
+        const FY_ICON = { y1: 'Football', y2: 'Football', y3: 'Football', y4: 'Racing', y5: 'Tennis', y6: 'Football', y7: 'Basketball', y8: 'Football', y9: 'Love Island' };
         let currentSport = 'For You';
         let bets = [];
 
@@ -969,6 +984,7 @@
             renderSlip();          // seeds the £0.00 / button label
             renderAccount();
             bgStyle();
+            syncDarkLabel();
             blobField.start();
             // Jump (no smooth scroll) to the landing page before the first
             // paint-ish, then sync all the chrome to it.
@@ -1035,6 +1051,11 @@
                 // per runner (Yes/No on binary markets) with the odds on each,
                 // and no single £1 bet button in the action column.
                 const isMarket = fixture.id.indexOf('pm') === 0;
+                // Category icon: prediction markets share icon-markets.png,
+                // everything else maps to its icon-<sport>.svg artwork.
+                const catIconSrc = isMarket
+                    ? 'icon-markets.png'
+                    : 'icon-' + (fixture.sport === 'For You' ? (FY_ICON[fixture.id] || 'Football') : fixture.sport).toLowerCase().replace(/\s+/g, '-') + '.svg';
                 const marketPills = isMarket ? `
                     <div class="flex gap-2 mt-5 px-2">
                         ${fixture.selections.map(s => `
@@ -1049,6 +1070,9 @@
                         <span class="text-xs text-gray-500 font-bold uppercase tracking-wider">${fixture.market}</span>
                     </div>
                     <div class="text-center my-auto px-1">
+                        <!-- Category icon: quick read of what kind of bet this
+                             is. Sits above the copy, ~30% of mobile viewport width. -->
+                        <img src="${catIconSrc}" alt="" class="block mx-auto mb-4 w-[30vw] max-w-[120px] grayscale opacity-70 dark:invert">
                         <h2 class="headline text-gray-900 dark:text-white break-words transition-colors duration-300">${sel.line}</h2>
                         <span class="stake-line text-xl text-gray-400 mt-4 block">&pound;1 &rarr; <span class="text-[#61AD34]">&pound;${sel.odds.toFixed(2)}</span></span>
                         ${marketPills}
