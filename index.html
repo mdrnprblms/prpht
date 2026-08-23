@@ -1385,7 +1385,10 @@
                 }
             } else {
                 btn.classList.remove('placed');
-                if (isTikTok) {
+                if (isPill) {
+                    btn.className = "bet-btn bet-btn-pill flex-1 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-800 dark:text-white flex flex-col items-center justify-center py-2.5 rounded-xl transition-all border border-gray-100 dark:border-gray-700 shadow-sm";
+                    btn.innerHTML = `<span class="text-[11px] font-bold text-gray-400 bet-text-inner">&pound;1 bet ${selectionText}</span><span class="text-base font-black bet-odds-inner">${parseFloat(btn.getAttribute('data-odds')).toFixed(2)}</span>`;
+                } else if (isTikTok) {
                     btn.className = "bet-btn bet-btn-tiktok text-gray-400 w-full flex flex-col items-center justify-center transition-all";
                     btn.innerHTML = `<svg class="w-11 h-6 bet-icon-inner" viewBox="0 0 588.47 319.03" fill="currentColor" aria-hidden="true"><use href="#icon-bet"/></svg><span class="text-[10px] font-bold mt-1 bet-text-inner">&pound;1 bet</span>`;
                 } else {
