@@ -175,7 +175,7 @@
                Set here rather than as Tailwind utilities - the CDN injects
                after this stylesheet, so an equal-specificity utility would
                win. */
-            font-size: 1.5rem;
+            font-size: 1.25rem;
             line-height: 1.25;
             letter-spacing: -0.02em;
         }
@@ -1072,7 +1072,7 @@
                     <div class="text-center my-auto px-1">
                         <!-- Category icon: quick read of what kind of bet this
                              is. Sits above the copy, ~30% of mobile viewport width. -->
-                        <img src="${catIconSrc}" alt="" class="block mx-auto mb-4 w-[30vw] max-w-[120px] grayscale opacity-70 dark:invert">
+                        <span class="block mx-auto mb-4 w-[30vw] max-w-[120px] aspect-square" style="background:${fixture.color}; -webkit-mask:url('${catIconSrc}') center/contain no-repeat; mask:url('${catIconSrc}') center/contain no-repeat;" aria-hidden="true"></span>
                         <h2 class="headline text-gray-900 dark:text-white break-words transition-colors duration-300">${sel.line}</h2>
                         <span class="stake-line text-xl text-gray-400 mt-4 block">&pound;1 &rarr; <span class="text-[#61AD34]">&pound;${sel.odds.toFixed(2)}</span></span>
                         ${marketPills}
@@ -1344,10 +1344,36 @@
                 removeBet(existingMatchBet.id);
             }
 
-            bets.push({ id, matchId, selection, match, odds });
+            bets.push({ id, matchId, selection, match, odds, stake: 1.00 });
             document.querySelectorAll(`[data-id="${id}"]`).forEach(el => updateButtonUI(el, true));
             renderSlip();
             pressPop(btn);
+        }
+
+        /* Fractional staking. Runs on every slider input tick: mutates that
+           bet's stake and refreshes ONLY the affected labels + totals. A full
+           renderSlip() here would rebuild the DOM under the thumb mid-drag and
+           kill the gesture. */
+        function setSlipStake(input) {
+            if (simulating) return;
+            const row = input.closest('.slip-row');
+            const bet = bets.find(b => b.id === row.getAttribute('data-slip-id'));
+            if (!bet) return;
+            bet.stake = Math.round(parseFloat(input.value) * 20) / 20;   // snap to the 5p grid
+            if (bet.stake > 1) bet.stake = 1;
+            if (bet.stake < 0.05) bet.stake = 0.05;
+            row.querySelector('.slip-row-stake').innerHTML = '&pound;' + bet.stake.toFixed(2);
+            const lbl = row.querySelector('.slip-row-stakelabel');
+            if (lbl) lbl.innerHTML = '&pound;' + bet.stake.toFixed(2);
+            const hasAcca = bets.length > 1;
+            const totalStake = bets.reduce((s, b) => s + (b.stake || 1), 0) + (hasAcca ? 1 : 0);
+            const totalReturns = bets.reduce((sum, b) => sum + (b.odds * (b.stake || 1)), 0) +
+                (hasAcca ? bets.reduce((prod, b) => prod * b.odds, 1) : 0);
+            const headerText = `&pound;${totalStake.toFixed(2)} &middot; Returns &pound;${totalReturns.toFixed(2)}`;
+            document.getElementById('collapsed-returns').innerHTML = headerText;
+            document.getElementById('expanded-header-returns').innerHTML = headerText;
+            document.getElementById('total-stake-text').innerHTML = `&pound;${totalStake.toFixed(2)}`;
+            resetPlaceButton(totalStake);
         }
 
         function removeBet(id) {
@@ -1440,14 +1466,15 @@
             const accaBlock = document.getElementById('acca-block');
             const numBets = bets.length;
             
-            let singlesStake = numBets * 1.00;
+            // Singles are fractionally staked per leg (5p-£1); the acca stays flat £1.
+            let singlesStake = bets.reduce((s, b) => s + (b.stake || 1), 0);
             let hasAcca = numBets > 1;
             let accaStake = hasAcca ? 1.00 : 0;
             let accaOdds = hasAcca ? bets.reduce((prod, b) => prod * b.odds, 1) : 0;
             let accaReturns = accaOdds * accaStake;
             
             let totalStake = singlesStake + accaStake;
-            let totalReturns = (bets.reduce((sum, b) => sum + (b.odds * 1.00), 0)) + accaReturns;
+            let totalReturns = (bets.reduce((sum, b) => sum + (b.odds * (b.stake || 1)), 0)) + accaReturns;
 
             document.getElementById('collapsed-count').innerText = numBets;
             document.getElementById('expanded-count').innerText = numBets;
@@ -1459,20 +1486,33 @@
             resetPlaceButton(totalStake);
 
             container.innerHTML = bets.map(bet => `
-                <div class="slip-row flex justify-between items-center py-2 border-b border-gray-50 dark:border-gray-800 transition-colors" data-slip-id="${esc(bet.id)}">
-                    <div class="flex-1 min-w-0 pr-2">
-                        <div class="font-bold text-gray-900 dark:text-white truncate">${bet.selection}</div>
-                        <div class="text-[10px] text-gray-400 mt-0.5 truncate">${bet.match}</div>
-                    </div>
-                    <div class="text-right flex items-center space-x-3 shrink-0">
-                        <div class="slip-status hidden text-right"></div>
-                        <div class="slip-odds">
-                            <div class="font-black text-gray-900 dark:text-white">${getFraction(bet.odds)}</div>
-                            <div class="text-[10px] text-gray-400 mt-0.5">&pound;1 stake</div>
-                        </div>
-                        <button onclick="removeBet('${esc(bet.id)}')" class="slip-remove text-gray-300 dark:text-gray-600 text-lg font-light hover:text-red-400">&times;</button>
-                    </div>
-                </div>
+                <div class="slip-row py-2 border-b border-gray-50 dark:border-gray-800 transition-colors" data-slip-id="${esc(bet.id)}">
+                    <div class="flex justify-between items-center">
+                        <div class="flex-1 min-w-0 pr-2">
+                            <div class="font-bold text-gray-900 dark:text-white truncate">${bet.selection}</div>
+                            <div class="text-[10px] text-gray-400 mt-0.5 truncate">${bet.match}</div>
+                        </div>
+                        <div class="text-right flex items-center space-x-3 shrink-0">
+                            <div class="slip-status hidden text-right"></div>
+                            <div class="slip-odds">
+                                <div class="font-black text-gray-900 dark:text-white">${getFraction(bet.odds)}</div>
+                                <div class="text-[10px] text-gray-400 mt-0.5"><span class="slip-row-stakelabel">&pound;${Number(bet.stake || 1).toFixed(2)}</span> stake</div>
+                            </div>
+                            <button onclick="removeBet('${esc(bet.id)}')" class="slip-remove text-gray-300 dark:text-gray-600 text-lg font-light hover:text-red-400">&times;</button>
+                        </div>
+                    </div>
+                    <!-- Fractional stake slider: 5p floor/step, £1 ceiling.
+                         The handler reads its row id off data-slip-id rather
+                         than interpolating an id into an inline handler. -->
+                    <div class="flex items-center space-x-2 mt-1.5">
+                        <span class="text-[9px] text-gray-400 font-bold shrink-0">5p</span>
+                        <input type="range" min="0.05" max="1" step="0.05" value="${Number(bet.stake || 1).toFixed(2)}"
+                               oninput="setSlipStake(this)" ${simulating ? 'disabled' : ''}
+                               class="flex-1 h-1.5 accent-brand cursor-pointer slip-stake-slider" aria-label="Stake for ${esc(bet.selection)}">
+                        <span class="text-[9px] text-gray-400 font-bold shrink-0">&pound;1</span>
+                        <span class="slip-row-stake text-[11px] font-black text-gray-900 dark:text-white w-11 text-right shrink-0">&pound;${Number(bet.stake || 1).toFixed(2)}</span>
+                    </div>
+                </div>
             `).join('');
 
             if (hasAcca) {
@@ -1607,7 +1647,7 @@
             const legs = bets.slice();                  // snapshot; bets[] may change later
             const hasAcca = legs.length > 1;
             const accaOdds = legs.reduce((prod, b) => prod * b.odds, 1);
-            const totalStake = legs.length + (hasAcca ? 1 : 0);
+            const totalStake = legs.reduce((s, l) => s + (l.stake || 1), 0) + (hasAcca ? 1 : 0);
 
             if (totalStake > balance + 1e-9) {
                 showToast('Not enough balance for ' + money(totalStake));
@@ -1630,13 +1670,13 @@
                 await wait(1100);
                 const won = Math.random() < winChance(leg.odds);
                 outcomes.push(won);
-                const ret = won ? leg.odds : 0;
+                const ret = won ? leg.odds * (leg.stake || 1) : 0;
                 returned += ret;
                 if (won) { balance += ret; renderBalance(); }
                 markSlipRow(leg.id, won, ret);
                 betHistory.unshift({
                     label: leg.selection, match: leg.match, odds: leg.odds,
-                    stake: 1, won: won, returns: ret, type: 'Single', when: Date.now()
+                    stake: (leg.stake || 1), won: won, returns: ret, type: 'Single', when: Date.now()
                 });
             }
 
@@ -1673,6 +1713,7 @@
         function markSlipRow(id, won, ret) {
             const row = document.querySelector('.slip-row[data-slip-id="' + CSS.escape(id) + '"]');
             if (!row) return;
+            const legStake = (bets.find(b => b.id === id) || {}).stake || 1;
             row.classList.add(won ? 'bg-green-50' : 'bg-red-50', 'dark:bg-transparent');
             const odds = row.querySelector('.slip-odds');
             if (odds) odds.classList.add('hidden');
@@ -1681,7 +1722,7 @@
             st.classList.remove('hidden');
             st.innerHTML = won
                 ? '<div class="font-black text-[#61AD34]">WON</div><div class="text-[10px] text-[#61AD34] mt-0.5">+' + money(ret) + '</div>'
-                : '<div class="font-black text-red-500">LOST</div><div class="text-[10px] text-gray-400 mt-0.5">-' + money(1) + '</div>';
+                : '<div class="font-black text-red-500">LOST</div><div class="text-[10px] text-gray-400 mt-0.5">-' + money(legStake) + '</div>';
         }
 
         function markAcca(won, ret) {
@@ -1982,7 +2023,7 @@
             if (bets.some(b => b.id === id)) { showToast('Already in your slip'); return; }
             const clash = bets.find(b => b.matchId === f.matchId);
             if (clash) removeBet(clash.id);
-            bets.push({ id: id, matchId: f.matchId, selection: f.selection, match: f.match, odds: f.odds });
+            bets.push({ id: id, matchId: f.matchId, selection: f.selection, match: f.match, odds: f.odds, stake: 1.00 });
             document.querySelectorAll('[data-id="' + CSS.escape(id) + '"]').forEach(el => updateButtonUI(el, true));
             renderSlip();
             showToast('Copied ' + f.who + "'s bet");
