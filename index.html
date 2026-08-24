@@ -285,15 +285,6 @@
         </div>
     </header>
 
-    <!-- PAGE NAV. The orange highlight is a separate absolutely-positioned
-         element driven continuously from scrollLeft (see updateNavHighlight),
-         so it tracks the finger mid-swipe instead of jumping on release. -->
-    <div class="relative shrink-0 z-10 border-b border-gray-100 dark:border-gray-800 bg-[#FCF4F6]/80 dark:bg-[#040403]/80 backdrop-blur-md overflow-hidden">
-        <!-- Width must equal 1/PAGE_COUNT: updateNavHighlight advances by
-             translateX(100%), i.e. exactly one slot of its own width. -->
-        <div id="page-nav-highlight" class="absolute top-0 bottom-0 left-0 w-1/4 bg-brand" style="transform: translateX(0%)"></div>
-        <div id="page-nav" class="relative flex"></div>
-    </div>
 
     <!-- Sport filter. Only meaningful on the two betting pages, so it slides up
          out of the way on Messages/Friends. Wrapper animates max-height so the
@@ -336,8 +327,8 @@
             <!-- No pb-24 here: the level map supplies its own bottom padding
                  (MAP_PAD_BOTTOM) and the two stacked into dead space. -->
             <main id="fixtures-feed" class="w-1/4 shrink-0 h-full overflow-y-auto no-scrollbar snap-center relative"></main>
-            <main id="tiktok-feed" class="w-1/4 shrink-0 h-full overflow-y-auto snap-y snap-mandatory no-scrollbar snap-center relative"></main>
-            <main id="traditional-feed" class="w-1/4 shrink-0 h-full overflow-y-auto pb-24 snap-center relative"></main>
+            <main id="tiktok-feed" class="w-1/4 shrink-0 h-full overflow-y-auto snap-y snap-mandatory no-scrollbar snap-center relative pb-14"></main>
+            <main id="traditional-feed" class="w-1/4 shrink-0 h-full overflow-y-auto pb-32 snap-center relative"></main>
         </div>
     </div>
 
@@ -347,7 +338,7 @@
          sync with PAGE_COUNT the way two hardcoded dots did. -->
     <div class="absolute w-full flex justify-center space-x-1.5 pb-2 pointer-events-none z-10 transition-all duration-300" style="bottom: 0.25rem" id="indicator-dots"></div>
 
-    <div id="collapsed-slip" onclick="toggleSlip()" class="slip-hidden absolute bottom-0 w-full bg-brand text-white p-4 rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.1)] flex justify-between items-center cursor-pointer z-20">
+    <div id="collapsed-slip" onclick="toggleSlip()" class="slip-hidden absolute bottom-11 w-full bg-brand text-white p-4 rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.1)] flex justify-between items-center cursor-pointer z-20">
         <div class="flex items-center space-x-3">
             <div id="collapsed-count" class="bg-white text-brand font-black w-6 h-6 rounded-full flex items-center justify-center text-sm">0</div>
             <span class="font-bold text-lg">Bet Slip</span>
@@ -610,6 +601,17 @@
 
     <!-- TOAST --------------------------------------------------------------- -->
     <div id="toast" class="fixed left-1/2 -translate-x-1/2 z-[80] px-4 py-2.5 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-bold shadow-lg opacity-0 pointer-events-none transition-all duration-300" style="bottom: 6rem"></div>
+
+    <!-- BOTTOM PAGE NAV. Persistent tab bar: always visible on every page,
+         nothing ever covers it. The sliding highlight is driven continuously
+         from scrollLeft (see updateNavHighlight) so it tracks the finger
+         mid-swipe instead of jumping on release. Width must equal
+         1/PAGE_COUNT: the highlight advances by translateX(100%), i.e.
+         exactly one slot of its own width. -->
+    <div class="relative shrink-0 z-40 border-t border-gray-100 dark:border-gray-800 bg-[#FCF4F6]/95 dark:bg-[#040403]/95 backdrop-blur-md overflow-hidden" style="padding-bottom: env(safe-area-inset-bottom)">
+        <div id="page-nav-highlight" class="absolute top-0 bottom-0 left-0 w-1/4 bg-brand" style="transform: translateX(0%)"></div>
+        <div id="page-nav" class="relative flex"></div>
+    </div>
 
 <script>
         function syncDarkLabel() {
@@ -1209,7 +1211,7 @@
         function renderPageNav() {
             document.getElementById('page-nav').innerHTML = PAGES.map((p, i) => `
                 <button onclick="goToPage(${i})" data-page="${i}"
-                        class="page-tab flex-1 py-1 text-[10px] font-bold uppercase tracking-wider transition-colors duration-200">
+                        class="page-tab flex-1 h-11 flex items-center justify-center text-[10px] font-bold uppercase tracking-wider transition-colors duration-200">
                     ${p.label}
                 </button>`).join('');
         }
@@ -1313,7 +1315,7 @@
             // inline bet button and the bar was crowding it.
             document.getElementById('collapsed-slip').classList.toggle('slip-hidden', !onTraditional);
             // Keep the dots off the slip bar, which only exists on feed two.
-            document.getElementById('indicator-dots').style.bottom = onTraditional ? '5rem' : '0.25rem';
+            document.getElementById('indicator-dots').style.bottom = onTraditional ? '7.75rem' : '3rem';
             if (!onTraditional) {
                 // Don't leave the expanded panel orphaned over another feed.
                 document.getElementById('expanded-slip').classList.add('translate-y-full');
