@@ -320,7 +320,7 @@
                 <div id="friends-bets" class="h-[55%] shrink-0 overflow-y-auto snap-y snap-mandatory no-scrollbar"></div>
                 <div class="shrink-0 flex items-center justify-between px-4 py-2 border-y border-gray-200/70 dark:border-gray-800 bg-white/85 dark:bg-gray-900/85 backdrop-blur-md">
                     <span class="text-[11px] font-bold uppercase tracking-wider text-gray-500">Messages</span>
-                    <button onclick="openNewSweep(this)" class="text-brand text-[11px] font-bold border border-brand rounded-lg px-2.5 py-1">+ Sweepstake</button>
+                    <button onclick="openNewSweep(this)" class="text-brand text-[11px] font-bold border border-brand rounded-lg px-2.5 py-1">+ Group bet</button>
                 </div>
                 <div id="messages-feed" class="flex-1 overflow-y-auto no-scrollbar"></div>
             </main>
@@ -436,7 +436,7 @@
             </button>
             <button onclick="closeAccount(); openSweeps();" class="w-full p-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between text-left">
                 <div>
-                    <div class="font-bold text-sm">Sweepstakes</div>
+                    <div class="font-bold text-sm">Group bets</div>
                     <div class="text-[11px] text-gray-400 mt-0.5">Run one for your office or group &middot; 0% fees</div>
                 </div>
                 <span class="text-brand font-bold text-lg">&rsaquo;</span>
@@ -457,7 +457,7 @@
     <div id="sweeps-page" class="fixed inset-0 z-[60] bg-[#FCF4F6] dark:bg-[#040403] flex flex-col transform translate-x-full transition-transform duration-300">
         <div class="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
             <button onclick="closeSweeps()" class="text-brand font-bold text-sm">&larr; Back</button>
-            <span class="font-bold">Sweepstakes</span>
+            <span class="font-bold">Group bets</span>
             <button onclick="createSweep(this)" class="text-brand font-bold text-sm">New</button>
         </div>
 
@@ -477,7 +477,7 @@
     <div id="new-sweep-page" class="fixed inset-0 z-[65] bg-[#FCF4F6] dark:bg-[#040403] flex flex-col transform translate-x-full transition-transform duration-300">
         <div class="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
             <button onclick="closeNewSweep()" class="text-brand font-bold text-sm">Cancel</button>
-            <span class="font-bold">New sweepstake</span>
+            <span class="font-bold">New group bet</span>
             <span class="w-14"></span>
         </div>
         <div class="flex-1 overflow-y-auto no-scrollbar p-4 space-y-5">
@@ -548,7 +548,7 @@
             </div>
         </div>
         <div class="p-4 border-t border-gray-100 dark:border-gray-800 shrink-0">
-            <button onclick="submitNewSweep(this)" class="w-full bg-brand text-white font-bold py-3.5 rounded-xl text-sm shadow-md">Create &amp; join &middot; &pound;1</button>
+            <button onclick="submitNewSweep(this)" class="w-full bg-brand text-white font-bold py-3.5 rounded-xl text-sm shadow-md">Create &amp; join group bet &middot; &pound;1</button>
         </div>
     </div>
 
@@ -608,8 +608,8 @@
          mid-swipe instead of jumping on release. Width must equal
          1/PAGE_COUNT: the highlight advances by translateX(100%), i.e.
          exactly one slot of its own width. -->
-    <div class="relative shrink-0 z-40 border-t border-gray-100 dark:border-gray-800 bg-[#FCF4F6]/95 dark:bg-[#040403]/95 backdrop-blur-md overflow-hidden" style="padding-bottom: env(safe-area-inset-bottom)">
-        <div id="page-nav-highlight" class="absolute top-0 bottom-0 left-0 w-1/4 bg-brand" style="transform: translateX(0%)"></div>
+    <div class="relative shrink-0 z-40 border-t border-gray-100 dark:border-gray-800 bg-[#FCF4F6]/95 dark:bg-[#040403]/95 backdrop-blur-md" style="padding-bottom: env(safe-area-inset-bottom)">
+        <div id="page-nav-highlight" class="absolute top-0 bottom-0 left-0 w-1/5 bg-brand" style="transform: translateX(0%)"></div>
         <div id="page-nav" class="relative flex"></div>
     </div>
 
@@ -1209,11 +1209,25 @@
         let lastPage = -1;
 
         function renderPageNav() {
-            document.getElementById('page-nav').innerHTML = PAGES.map((p, i) => `
+            // Five EQUAL slots, TikTok-style: the centre one is the create
+            // button, not a page. It never takes part in swiping - taps only -
+            // so goToPage/highlight logic keeps working on the original four
+            // page indices and .page-tab stays exclusive to real tabs (the
+            // active-tab colouring in updateIndicator relies on that).
+            const tab = (p, i) => `
                 <button onclick="goToPage(${i})" data-page="${i}"
                         class="page-tab flex-1 h-11 flex items-center justify-center text-[10px] font-bold uppercase tracking-wider transition-colors duration-200">
                     ${p.label}
-                </button>`).join('');
+                </button>`;
+            const plus = `
+                <div class="flex-1 h-11 flex items-center justify-center">
+                    <button onclick="openNewSweep(this)" aria-label="Create group bet"
+                            class="relative z-10 -mt-6 w-10 h-10 rounded-2xl bg-brand text-white shadow-lg flex items-center justify-center active:scale-90 transition-transform">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                    </button>
+                </div>`;
+            document.getElementById('page-nav').innerHTML =
+                tab(PAGES[0], 0) + tab(PAGES[1], 1) + plus + tab(PAGES[2], 2) + tab(PAGES[3], 3);
         }
 
         function goToPage(i) {
@@ -1227,10 +1241,17 @@
             const w = document.getElementById('feed-wrapper');
             if (!w.clientWidth) return;
             const frac = Math.max(0, Math.min(PAGE_COUNT - 1, w.scrollLeft / w.clientWidth));
-            // The highlight is 1/PAGE_COUNT wide, so translateX(100%) advances
-            // it by exactly one slot.
+            // Five visual slots, four pages: map page-space onto slot-space so
+            // the highlight tracks the finger continuously. Crossing the middle
+            // (FIXTURES -> FOR YOU) sweeps it THROUGH the centre + slot rather
+            // than teleporting past it.
+            const slot = frac <= 1 ? frac
+                       : frac <= 2 ? 1 + (frac - 1) * 2
+                                   : 3 + (frac - 2);
+            // The highlight is 1/5 wide, so translateX(100%) advances it by
+            // exactly one slot.
             document.getElementById('page-nav-highlight').style.transform =
-                'translateX(' + (frac * 100) + '%)';
+                'translateX(' + (slot * 100) + '%)';
         }
 
         function currentPage() {
@@ -2184,7 +2205,7 @@
                 '<div class="sticky top-0 z-20 p-4 border-b border-gray-200/70 dark:border-gray-800/70 bg-white/85 dark:bg-gray-900/85 backdrop-blur-md flex items-center justify-between">' +
                     '<div><div class="font-bold text-sm">The run-in</div>' +
                     '<div class="text-[10px] text-gray-400">Next up at the bottom \u00B7 climb as the week goes on</div></div>' +
-                    '<button onclick="openSweeps()" class="text-brand text-xs font-bold border border-brand rounded-lg px-3 py-2">Sweepstakes</button>' +
+                    '<button onclick="openSweeps()" class="text-brand text-xs font-bold border border-brand rounded-lg px-3 py-2">Group bets</button>' +
                 '</div>' +
                 '<div id="level-map" class="relative w-full" style="height:' + mapH + 'px">' +
                     '<svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 ' + mapH + '" preserveAspectRatio="none" aria-hidden="true">' +
@@ -2468,7 +2489,7 @@
                         </div>
                     `}
                 </div>`;
-            }).join('') || '<div class="text-center text-sm text-gray-400 py-10">No sweepstakes yet</div>';
+            }).join('') || '<div class="text-center text-sm text-gray-400 py-10">No group bets yet</div>';
         }
 
         function joinSweep(id, btn) {
@@ -2638,7 +2659,7 @@
         function submitNewSweep(btn) {
             pressPop(btn);
             if (balance < SWEEP_ENTRY) { showToast('Not enough balance'); return; }
-            const name = document.getElementById('ns-name').value.trim() || 'Untitled sweepstake';
+            const name = document.getElementById('ns-name').value.trim() || 'Untitled group bet';
             let ev;
             let customMeta = null;
             if (nsCustom) {
@@ -2681,7 +2702,7 @@
             renderMessagesFeed();
             renderSweeps();
             closeNewSweep();
-            showToast('Sweepstake created · ' + (nsFriends.length + nsPhones.length) + ' invited');
+            showToast('Group bet created · ' + (nsFriends.length + nsPhones.length) + ' invited');
         }
 
         // Kept for the Sweepstakes page header, which now opens the same sheet.
