@@ -623,21 +623,21 @@
         // button) and a plain-English `line` (the big TikTok headline).
         const demoFixtures = [
             // FOR YOU - long shots and bet builders across every sport
-            { id: 'y1', sport: 'For You', color: '#EF0107', league: 'Premier League', time: '12:30 - Sat 26 Jul', match: 'Arsenal v Chelsea', market: 'Bet Builder', selections: [{name: 'Saka & Odegaard', odds: 29.00, line: 'Saka to assist Odegaard and Odegaard to assist Saka'}], target: 0 },
+            { id: 'y1', sport: 'For You', color: '#C8563B', league: 'Premier League', time: '12:30 - Sat 26 Jul', match: 'Arsenal v Chelsea', market: 'Bet Builder', selections: [{name: 'Saka & Odegaard', odds: 29.00, line: 'Saka to assist Odegaard and Odegaard to assist Saka'}], target: 0 },
             { id: 'y2', sport: 'For You', color: '#6CABDD', league: 'Premier League', time: '17:30 - Sat 26 Jul', match: 'Man City v Liverpool', market: 'Long Shot', selections: [{name: 'Haaland hat-trick', odds: 41.00, line: 'Haaland to score a hat-trick and Manchester City to win 4-0'}], target: 0 },
             { id: 'y3', sport: 'For You', color: '#004D98', league: 'La Liga', time: '16:00 - Sun 27 Jul', match: 'Barcelona v Real Madrid', market: 'Bet Builder', selections: [{name: 'Goals in both halves', odds: 12.00, line: 'Both teams to score in both halves of El Clasico'}], target: 0 },
             { id: 'y4', sport: 'For You', color: '#A6BE47', league: 'Aintree', time: '16:00 - Tomorrow', match: 'Grand National', market: 'Double', selections: [{name: 'Rambler & Maximus', odds: 34.00, line: 'Corach Rambler to win the Grand National and I Am Maximus to place'}], target: 0 },
             { id: 'y5', sport: 'For You', color: '#61AD34', league: 'Wimbledon', time: '13:00 - Wed 30 Jul', match: 'Djokovic v Alcaraz', market: 'Bet Builder', selections: [{name: 'Straight sets', odds: 8.50, line: 'Djokovic to win in straight sets and drop fewer than six games'}], target: 0 },
-            { id: 'y6', sport: 'For You', color: '#DC052D', league: 'Bundesliga', time: '14:30 - Sun 27 Jul', match: 'Bayern Munich v Dortmund', market: 'Bet Builder', selections: [{name: 'Corners & cards', odds: 16.00, line: 'Over 12 corners and 5 or more cards in Der Klassiker'}], target: 0 },
+            { id: 'y6', sport: 'For You', color: '#B84A5A', league: 'Bundesliga', time: '14:30 - Sun 27 Jul', match: 'Bayern Munich v Dortmund', market: 'Bet Builder', selections: [{name: 'Corners & cards', odds: 16.00, line: 'Over 12 corners and 5 or more cards in Der Klassiker'}], target: 0 },
             { id: 'y7', sport: 'For You', color: '#FDB927', league: 'NBA', time: '01:30 - Wed 30 Jul', match: 'Lakers v Warriors', market: 'Long Shot', selections: [{name: 'Curry 8 threes', odds: 23.00, line: 'Steph Curry to sink 8 threes and the Warriors to win by 20'}], target: 0 },
             { id: 'y8', sport: 'For You', color: '#004170', league: 'Ligue 1', time: '20:00 - Tue 29 Jul', match: 'PSG v Marseille', market: 'Wildcard', selections: [{name: 'Keeper to score', odds: 66.00, line: 'Any goalkeeper to score and the match to finish level'}], target: 0 },
             { id: 'y9', sport: 'For You', color: '#FF2E7E', league: 'Love Island', time: '21:00 - Tonight', match: 'Villa Specials', market: 'Long Shot', selections: [{name: 'Aidan dumped & double dumping', odds: 34.00, line: 'Aidan to be dumped tonight and the villa to lose two couples by Sunday'}], target: 0 },
 
             // FOOTBALL
-            { id: 'f1', sport: 'Football', color: '#EF0107', league: 'Premier League', time: '12:30 - Sat 26 Jul', match: 'Arsenal v Chelsea', market: 'Match Result', selections: [{name: 'Arsenal', odds: 2.10, line: 'Arsenal to beat Chelsea within 90 minutes'}, {name: 'Draw', odds: 3.40, line: 'Arsenal and Chelsea to share the points'}, {name: 'Chelsea', odds: 3.80, line: 'Chelsea to win away at the Emirates'}], target: 0 },
+            { id: 'f1', sport: 'Football', color: '#C8563B', league: 'Premier League', time: '12:30 - Sat 26 Jul', match: 'Arsenal v Chelsea', market: 'Match Result', selections: [{name: 'Arsenal', odds: 2.10, line: 'Arsenal to beat Chelsea within 90 minutes'}, {name: 'Draw', odds: 3.40, line: 'Arsenal and Chelsea to share the points'}, {name: 'Chelsea', odds: 3.80, line: 'Chelsea to win away at the Emirates'}], target: 0 },
             { id: 'f2', sport: 'Football', color: '#6CABDD', league: 'Premier League', time: '17:30 - Sat 26 Jul', match: 'Man City v Liverpool', market: 'Match Result', selections: [{name: 'Man City', odds: 1.90, line: 'Manchester City to beat Liverpool within 90 minutes'}, {name: 'Draw', odds: 3.60, line: 'Manchester City and Liverpool to share the points'}, {name: 'Liverpool', odds: 4.20, line: 'Liverpool to win away at the Etihad'}], target: 1 },
             { id: 'f3', sport: 'Football', color: '#004D98', league: 'La Liga', time: '16:00 - Sun 27 Jul', match: 'Barcelona v Real Madrid', market: 'Match Result', selections: [{name: 'Barcelona', odds: 2.50, line: 'Barcelona to win El Clasico within 90 minutes'}, {name: 'Draw', odds: 3.30, line: 'El Clasico to finish all square'}, {name: 'Real Madrid', odds: 2.90, line: 'Real Madrid to win away at the Nou Camp'}], target: 0 },
-            { id: 'f4', sport: 'Football', color: '#DC052D', league: 'Bundesliga', time: '14:30 - Sun 27 Jul', match: 'Bayern Munich v Dortmund', market: 'Match Result', selections: [{name: 'Bayern Munich', odds: 1.75, line: 'Bayern Munich to beat Dortmund within 90 minutes'}, {name: 'Draw', odds: 3.80, line: 'Bayern Munich and Dortmund to share the points'}, {name: 'Dortmund', odds: 5.00, line: 'Dortmund to win Der Klassiker in Munich'}], target: 2 },
+            { id: 'f4', sport: 'Football', color: '#B84A5A', league: 'Bundesliga', time: '14:30 - Sun 27 Jul', match: 'Bayern Munich v Dortmund', market: 'Match Result', selections: [{name: 'Bayern Munich', odds: 1.75, line: 'Bayern Munich to beat Dortmund within 90 minutes'}, {name: 'Draw', odds: 3.80, line: 'Bayern Munich and Dortmund to share the points'}, {name: 'Dortmund', odds: 5.00, line: 'Dortmund to win Der Klassiker in Munich'}], target: 2 },
             { id: 'f5', sport: 'Football', color: '#9ca3af', league: 'Serie A', time: '19:45 - Mon 28 Jul', match: 'Juventus v AC Milan', market: 'Match Result', selections: [{name: 'Juventus', odds: 2.40, line: 'Juventus to beat AC Milan within 90 minutes'}, {name: 'Draw', odds: 3.10, line: 'Juventus and AC Milan to share the points'}, {name: 'AC Milan', odds: 2.80, line: 'AC Milan to win away in Turin'}], target: 1 },
             { id: 'f6', sport: 'Football', color: '#004170', league: 'Ligue 1', time: '20:00 - Tue 29 Jul', match: 'PSG v Marseille', market: 'Match Result', selections: [{name: 'PSG', odds: 1.45, line: 'PSG to beat Marseille within 90 minutes'}, {name: 'Draw', odds: 4.50, line: 'Le Classique to finish all square'}, {name: 'Marseille', odds: 6.50, line: 'Marseille to win away in Paris'}], target: 0 },
 
@@ -788,11 +788,15 @@
                palettes (granite green, lavender grey, pacific cyan, wisteria
                blue). The field drifts slowly between these; the team colour
                stays the bright end of the ramp so cards still tint the room. */
+            // Same four companion hues as the coolors palettes, but with the
+            // chroma pushed well up from the raw swatches - the muted originals
+            // painted the blob EDGES and read as a grey halo around every
+            // cloud. Saturation lives here now; variation is unchanged.
             const WASH = [
-                [80, 108, 100],    // #506C64 granite green
-                [125, 132, 178],   // #7D84B2 lavender grey
-                [85, 130, 139],    // #55828B pacific cyan
-                [143, 166, 203],   // #8FA6CB wisteria blue
+                [63, 146, 114],    // saturated granite green
+                [122, 134, 204],   // saturated lavender blue
+                [61, 147, 166],    // saturated pacific cyan
+                [138, 164, 224],   // saturated wisteria blue
             ];
             const TEAM = [166, 190, 71];       // #A6BE47 default bright stop
             // Colour ramp per frame: [0]=trough, [1]=mid cloud, [2]=bright end.
@@ -869,7 +873,7 @@
                 // Light mode used to be the STRONGER of the two (0.85 vs 0.62),
                 // which is backwards: on a white page the blobs tint the card
                 // backgrounds pink and drag muted text under the AA threshold.
-                const strength = dark ? 0.62 : 0.5;
+                const strength = dark ? 0.62 : 0.56;
 
                 let p = 0;
                 for (let y = 0; y < H; y++) {
@@ -1486,33 +1490,60 @@
             resetPlaceButton(totalStake);
 
             container.innerHTML = bets.map(bet => `
-                <div class="slip-row py-2 border-b border-gray-50 dark:border-gray-800 transition-colors" data-slip-id="${esc(bet.id)}">
-                    <div class="flex justify-between items-center">
-                        <div class="flex-1 min-w-0 pr-2">
-                            <div class="font-bold text-gray-900 dark:text-white truncate">${bet.selection}</div>
-                            <div class="text-[10px] text-gray-400 mt-0.5 truncate">${bet.match}</div>
-                        </div>
-                        <div class="text-right flex items-center space-x-3 shrink-0">
-                            <div class="slip-status hidden text-right"></div>
-                            <div class="slip-odds">
-                                <div class="font-black text-gray-900 dark:text-white">${getFraction(bet.odds)}</div>
-                                <div class="text-[10px] text-gray-400 mt-0.5"><span class="slip-row-stakelabel">&pound;${Number(bet.stake || 1).toFixed(2)}</span> stake</div>
-                            </div>
-                            <button onclick="removeBet('${esc(bet.id)}')" class="slip-remove text-gray-300 dark:text-gray-600 text-lg font-light hover:text-red-400">&times;</button>
-                        </div>
-                    </div>
-                    <!-- Fractional stake slider: 5p floor/step, £1 ceiling.
-                         The handler reads its row id off data-slip-id rather
-                         than interpolating an id into an inline handler. -->
-                    <div class="flex items-center space-x-2 mt-1.5">
-                        <span class="text-[9px] text-gray-400 font-bold shrink-0">5p</span>
-                        <input type="range" min="0.05" max="1" step="0.05" value="${Number(bet.stake || 1).toFixed(2)}"
-                               oninput="setSlipStake(this)" ${simulating ? 'disabled' : ''}
-                               class="flex-1 h-1.5 accent-brand cursor-pointer slip-stake-slider" aria-label="Stake for ${esc(bet.selection)}">
-                        <span class="text-[9px] text-gray-400 font-bold shrink-0">&pound;1</span>
-                        <span class="slip-row-stake text-[11px] font-black text-gray-900 dark:text-white w-11 text-right shrink-0">&pound;${Number(bet.stake || 1).toFixed(2)}</span>
-                    </div>
-                </div>
+                <div class="slip-row py-2 border-b border-gray-50 dark:border-gray-800 transition-colors" data-slip-id="${esc(bet.id)}">
+
+                    <div class="flex justify-between items-center">
+
+                        <div class="flex-1 min-w-0 pr-2">
+
+                            <div class="font-bold text-gray-900 dark:text-white truncate">${bet.selection}</div>
+
+                            <div class="text-[10px] text-gray-400 mt-0.5 truncate">${bet.match}</div>
+
+                        </div>
+
+                        <div class="text-right flex items-center space-x-3 shrink-0">
+
+                            <div class="slip-status hidden text-right"></div>
+
+                            <div class="slip-odds">
+
+                                <div class="font-black text-gray-900 dark:text-white">${getFraction(bet.odds)}</div>
+
+                                <div class="text-[10px] text-gray-400 mt-0.5"><span class="slip-row-stakelabel">&pound;${Number(bet.stake || 1).toFixed(2)}</span> stake</div>
+
+                            </div>
+
+                            <button onclick="removeBet('${esc(bet.id)}')" class="slip-remove text-gray-300 dark:text-gray-600 text-lg font-light hover:text-red-400">&times;</button>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Fractional stake slider: 5p floor/step, £1 ceiling.
+
+                         The handler reads its row id off data-slip-id rather
+
+                         than interpolating an id into an inline handler. -->
+
+                    <div class="flex items-center space-x-2 mt-1.5">
+
+                        <span class="text-[9px] text-gray-400 font-bold shrink-0">5p</span>
+
+                        <input type="range" min="0.05" max="1" step="0.05" value="${Number(bet.stake || 1).toFixed(2)}"
+
+                               oninput="setSlipStake(this)" ${simulating ? 'disabled' : ''}
+
+                               class="flex-1 h-1.5 accent-brand cursor-pointer slip-stake-slider" aria-label="Stake for ${esc(bet.selection)}">
+
+                        <span class="text-[9px] text-gray-400 font-bold shrink-0">&pound;1</span>
+
+                        <span class="slip-row-stake text-[11px] font-black text-gray-900 dark:text-white w-11 text-right shrink-0">&pound;${Number(bet.stake || 1).toFixed(2)}</span>
+
+                    </div>
+
+                </div>
+
             `).join('');
 
             if (hasAcca) {
@@ -2587,7 +2618,7 @@
            MESSAGES
            --------------------------------------------------------------- */
         let conversations = [
-            { id: 'm1', who: 'Simon', initials: 'S', colour: '#EF0107', msgs: [
+            { id: 'm1', who: 'Simon', initials: 'S', colour: '#C8563B', msgs: [
                 { from: 'them', text: 'you seeing this Arsenal price?', t: '09:12' },
                 { from: 'them', kind: 'bet', matchId: 'f1', selection: 'Arsenal', match: 'Arsenal v Chelsea', odds: 2.10, line: 'Arsenal to beat Chelsea within 90 minutes', t: '09:12' },
                 { from: 'me', text: 'go on then', t: '09:15' }
