@@ -306,9 +306,12 @@
         
         <!-- Four horizontally-snapped pages. Widths are 1/PAGE_COUNT of the
              400% track, so each main is exactly one viewport wide. -->
-        <!-- DOM order IS the page order: Messages, Friends, For You, Betslip.
+        <!-- DOM order IS the page order: For You, Betslip, Fixtures, Friends.
              Must stay in sync with the PAGES array and the PAGE_* constants. -->
         <div class="flex w-[400%] h-full relative z-0">
+            <main id="tiktok-feed" class="w-1/4 shrink-0 h-full overflow-y-auto snap-y snap-mandatory no-scrollbar snap-center relative"></main>
+            <main id="traditional-feed" class="w-1/4 shrink-0 h-full overflow-y-auto pb-32 snap-center relative"></main>
+            <main id="fixtures-feed" class="w-1/4 shrink-0 h-full overflow-y-auto no-scrollbar snap-center relative"></main>
             <!-- Friends is a split view: bets above, chats below. The outer main
                  must NOT scroll - each pane scrolls independently, otherwise the
                  two fight and the divider drifts off screen. -->
@@ -320,11 +323,6 @@
                 </div>
                 <div id="messages-feed" class="flex-1 overflow-y-auto no-scrollbar"></div>
             </main>
-            <!-- No pb-24 here: the level map supplies its own bottom padding
-                 (MAP_PAD_BOTTOM) and the two stacked into dead space. -->
-            <main id="fixtures-feed" class="w-1/4 shrink-0 h-full overflow-y-auto no-scrollbar snap-center relative"></main>
-            <main id="tiktok-feed" class="w-1/4 shrink-0 h-full overflow-y-auto snap-y snap-mandatory no-scrollbar snap-center relative"></main>
-            <main id="traditional-feed" class="w-1/4 shrink-0 h-full overflow-y-auto pb-32 snap-center relative"></main>
         </div>
     </div>
 
@@ -465,7 +463,7 @@
 
     <!-- NEW SWEEPSTAKE. z above the sweeps page so it can be opened from there
          as well as from the Friends messages header. -->
-    <div id="new-sweep-page" class="fixed inset-0 z-[65] bg-[#FCF4F6] dark:bg-[#040403] flex flex-col transform translate-x-full transition-transform duration-300">
+    <div id="new-sweep-page" class="fixed inset-0 z-[65] bg-[#FCF4F6] dark:bg-[#040403] flex flex-col transform translate-y-full transition-transform duration-300">
         <div class="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
             <button onclick="closeNewSweep()" class="text-brand font-bold text-sm">Cancel</button>
             <span class="font-bold">New group bet</span>
@@ -1188,13 +1186,13 @@
         // Messages folded into the Friends page (bets on top, chats below), so
         // there is no standalone Messages page any more.
         const PAGES = [
-            { key: 'friends',  label: 'Friends'  },
-            { key: 'fixtures', label: 'Fixtures' },
             { key: 'foryou',   label: 'For You'  },
             { key: 'betslip',  label: 'Betslip'  },
+            { key: 'fixtures', label: 'Fixtures' },
+            { key: 'friends',  label: 'Friends'  },
         ];
         const PAGE_COUNT = PAGES.length;
-        const PAGE_FRIENDS = 0, PAGE_FIXTURES = 1, PAGE_TIKTOK = 2, PAGE_TRADITIONAL = 3;
+        const PAGE_TIKTOK = 0, PAGE_TRADITIONAL = 1, PAGE_FIXTURES = 2, PAGE_FRIENDS = 3;
         const LANDING_PAGE = PAGE_TIKTOK;      // open on the main feed
         let lastPage = -1;
 
@@ -1233,7 +1231,7 @@
             const frac = Math.max(0, Math.min(PAGE_COUNT - 1, w.scrollLeft / w.clientWidth));
             // Five visual slots, four pages: map page-space onto slot-space so
             // the highlight tracks the finger continuously. Crossing the middle
-            // (FIXTURES -> FOR YOU) sweeps it THROUGH the centre + slot rather
+            // (BETSLIP -> FIXTURES) sweeps it THROUGH the centre + slot rather
             // than teleporting past it.
             const slot = frac <= 1 ? frac
                        : frac <= 2 ? 1 + (frac - 1) * 2
@@ -2570,10 +2568,10 @@
             renderNsFriends();
             renderNsPhones();
             hideNsError();
-            document.getElementById('new-sweep-page').classList.remove('translate-x-full');
+            document.getElementById('new-sweep-page').classList.remove('translate-y-full');
         }
         function closeNewSweep() {
-            document.getElementById('new-sweep-page').classList.add('translate-x-full');
+            document.getElementById('new-sweep-page').classList.add('translate-y-full');
         }
 
         function renderNsFriends() {
