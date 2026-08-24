@@ -294,10 +294,6 @@
         </div>
     </div>
 
-    <div class="bg-[#F4F8E8]/90 dark:bg-gray-900/90 backdrop-blur-md text-[#3E5210] dark:text-[#8FB026] text-[11px] font-semibold px-3 py-1.5 flex items-center space-x-2 border-b border-[#DCE8C0] dark:border-gray-800 shrink-0 z-10 transition-colors duration-300">
-        <span class="w-1.5 h-1.5 bg-[#8FB026] rounded-full inline-block shrink-0"></span>
-        <span class="truncate">All bets fixed at &pound;1. You can never lose more than one pound per bet.</span>
-    </div>
 
     <div class="flex-1 w-full overflow-x-auto snap-x snap-mandatory no-scrollbar relative" id="feed-wrapper" onscroll="updateIndicator()">
         
@@ -327,16 +323,11 @@
             <!-- No pb-24 here: the level map supplies its own bottom padding
                  (MAP_PAD_BOTTOM) and the two stacked into dead space. -->
             <main id="fixtures-feed" class="w-1/4 shrink-0 h-full overflow-y-auto no-scrollbar snap-center relative"></main>
-            <main id="tiktok-feed" class="w-1/4 shrink-0 h-full overflow-y-auto snap-y snap-mandatory no-scrollbar snap-center relative pb-14"></main>
+            <main id="tiktok-feed" class="w-1/4 shrink-0 h-full overflow-y-auto snap-y snap-mandatory no-scrollbar snap-center relative"></main>
             <main id="traditional-feed" class="w-1/4 shrink-0 h-full overflow-y-auto pb-32 snap-center relative"></main>
         </div>
     </div>
 
-    <!-- `bottom` is set from updateIndicator(): sits right at the base on the
-         TikTok feed, and lifts clear of the bet slip on the traditional feed. -->
-    <!-- One dot per page; built by renderDots() so the count can't drift out of
-         sync with PAGE_COUNT the way two hardcoded dots did. -->
-    <div class="absolute w-full flex justify-center space-x-1.5 pb-2 pointer-events-none z-10 transition-all duration-300" style="bottom: 0.25rem" id="indicator-dots"></div>
 
     <div id="collapsed-slip" onclick="toggleSlip()" class="slip-hidden absolute bottom-11 w-full bg-brand text-white p-4 rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.1)] flex justify-between items-center cursor-pointer z-20">
         <div class="flex items-center space-x-3">
@@ -1013,7 +1004,6 @@
         }
 
         function init() {
-            renderDots();
             renderPageNav();
             lastPage = LANDING_PAGE;
             renderTabs();
@@ -1098,24 +1088,24 @@
                     ? 'icon-markets.png'
                     : 'icon-' + (fixture.sport === 'For You' ? (FY_ICON[fixture.id] || 'Football') : fixture.sport).toLowerCase().replace(/\s+/g, '-') + '.svg';
                 const marketPills = isMarket ? `
-                    <div class="flex gap-2 mt-5 px-2">
+                    <div class="flex gap-2 mt-3 px-1">
                         ${fixture.selections.map(s => `
-                        <button onclick="placeBet(this)" data-id="${fixture.id}-${s.name}" data-match-id="${fixture.id}" data-selection="${s.name}" data-match="${fixture.match}" data-odds="${s.odds}" class="bet-btn bet-btn-pill flex-1 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-800 dark:text-white flex flex-col items-center justify-center py-2.5 rounded-xl transition-all border border-gray-100 dark:border-gray-700 shadow-sm">
+                        <button onclick="placeBet(this)" data-id="${fixture.id}-${s.name}" data-match-id="${fixture.id}" data-selection="${s.name}" data-match="${fixture.match}" data-odds="${s.odds}" class="bet-btn bet-btn-pill flex-1 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-800 dark:text-white flex flex-col items-center justify-center py-2 rounded-xl transition-all border border-gray-100 dark:border-gray-700 shadow-sm">
                             <span class="text-[11px] font-bold text-gray-400 bet-text-inner">&pound;1 bet ${s.name}</span>
                             <span class="text-base font-black bet-odds-inner">&rarr; &pound;${s.odds.toFixed(2)}</span>
                         </button>`).join('')}
                     </div>` : '';
                 return `
-                <div class="tiktok-card h-full w-full snap-always snap-center flex flex-col justify-between p-5 box-border relative" data-color="${fixture.color}">
+                <div class="tiktok-card h-full w-full snap-always snap-center flex flex-col justify-between px-5 py-4 box-border relative overflow-hidden" data-color="${fixture.color}">
                     <div class="text-center mt-2">
                         <span class="text-xs text-gray-500 font-bold uppercase tracking-wider">${fixture.market}</span>
                     </div>
                     <div class="text-center my-auto px-1">
                         <!-- Category icon: quick read of what kind of bet this
                              is. Sits above the copy, ~30% of mobile viewport width. -->
-                        <span class="block mx-auto mb-4 w-[30vw] max-w-[120px] aspect-square" style="background:${fixture.color}; -webkit-mask:url('${catIconSrc}') center/contain no-repeat; mask:url('${catIconSrc}') center/contain no-repeat;" aria-hidden="true"></span>
+                        <span class="block mx-auto mb-3 w-[22vw] max-w-[88px] aspect-square" style="background:${fixture.color}; -webkit-mask:url('${catIconSrc}') center/contain no-repeat; mask:url('${catIconSrc}') center/contain no-repeat;" aria-hidden="true"></span>
                         <h2 class="headline text-gray-900 dark:text-white break-words transition-colors duration-300">${sel.line}</h2>
-                        <span class="stake-line text-xl text-gray-400 mt-4 block">&pound;1 &rarr; <span class="text-[#61AD34]">&pound;${sel.odds.toFixed(2)}</span></span>
+                        <span class="stake-line text-lg text-gray-400 mt-2 block">&pound;1 &rarr; <span class="text-[#61AD34]">&pound;${sel.odds.toFixed(2)}</span></span>
                         ${marketPills}
                     </div>
                     <div class="flex justify-between items-end mb-2">
@@ -1263,12 +1253,7 @@
             return Math.max(0, Math.min(PAGE_COUNT - 1, i));
         }
 
-        function renderDots() {
-            document.getElementById('indicator-dots').innerHTML =
-                Array.from({ length: PAGE_COUNT }, () =>
-                    `<div class="feed-dot w-1.5 h-1.5 bg-gray-300 dark:bg-gray-700 rounded-full transition-all duration-300"></div>`
-                ).join('');
-        }
+
 
         /* Chrome updates are split in two.
 
@@ -1336,17 +1321,12 @@
             // inline bet button and the bar was crowding it.
             document.getElementById('collapsed-slip').classList.toggle('slip-hidden', !onTraditional);
             // Keep the dots off the slip bar, which only exists on feed two.
-            document.getElementById('indicator-dots').style.bottom = onTraditional ? '7.75rem' : '3rem';
+            
             if (!onTraditional) {
                 // Don't leave the expanded panel orphaned over another feed.
                 document.getElementById('expanded-slip').classList.add('translate-y-full');
             }
 
-            document.querySelectorAll('.feed-dot').forEach((d, i) => {
-                d.className = i === page
-                    ? "feed-dot w-4 h-1.5 bg-brand rounded-full transition-all duration-300"
-                    : "feed-dot w-1.5 h-1.5 bg-gray-300 dark:bg-gray-700 rounded-full transition-all duration-300";
-            });
         }
 
         // Retrigger the squish. Removing the class and forcing a reflow before
