@@ -499,6 +499,41 @@
                 <label class="text-[10px] font-bold uppercase tracking-widest text-gray-500">Event</label>
                 <select id="ns-event" class="w-full mt-1.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-brand"></select>
             </div>
+
+            <!-- CUSTOM SWEEP: not tied to an event. The host writes the
+                 question, participants propose the possible answers themselves,
+                 and settlement is by group agreement rather than a result feed. -->
+            <label class="flex items-center justify-between cursor-pointer select-none">
+                <span class="text-[10px] font-bold uppercase tracking-widest text-gray-500">Custom question</span>
+                <span onclick="toggleNsCustom()" id="ns-custom-toggle"
+                    class="relative inline-block w-10 h-6 rounded-full bg-gray-200 dark:bg-gray-700 transition-colors">
+                    <span id="ns-custom-knob" class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"></span>
+                </span>
+            </label>
+            <div id="ns-custom-block" class="hidden space-y-3">
+                <div>
+                    <label class="text-[10px] font-bold uppercase tracking-widest text-gray-500">Question</label>
+                    <input id="ns-custom-q" type="text" maxlength="120" placeholder="e.g. Who'll be first to lose their keys this month?"
+                        class="w-full mt-1.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-brand">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold uppercase tracking-widest text-gray-500">Possible answers</label>
+                    <div class="flex items-center space-x-2 mt-1.5">
+                        <input id="ns-response-input" type="text" maxlength="60" placeholder="Add an answer..."
+                            onkeydown="if(event.key==='Enter'){event.preventDefault();addNsResponse();}"
+                            class="flex-1 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-brand">
+                        <button onclick="addNsResponse()" class="bg-gray-100 dark:bg-gray-800 font-bold text-sm px-4 py-2.5 rounded-xl">Add</button>
+                    </div>
+                    <div id="ns-response-list" class="mt-2 flex flex-wrap gap-2"></div>
+                    <div class="text-[11px] text-gray-500 mt-2">Everyone puts &pound;1 in and picks an answer when they join.</div>
+                </div>
+                <div class="rounded-xl border border-brand/40 bg-lime-50 dark:bg-gray-800 p-3">
+                    <div class="text-xs font-bold text-brand">Agreement settlement</div>
+                    <div class="text-[11px] text-[#3E5210] dark:text-lime-200/70 mt-0.5">
+                        Participants must vote and agree on the outcome. If an agreement is not met, all money will be returned.
+                    </div>
+                </div>
+            </div>
             <div>
                 <label class="text-[10px] font-bold uppercase tracking-widest text-gray-500">Invite friends</label>
                 <div id="ns-friends" class="mt-1.5 flex flex-wrap gap-2"></div>
@@ -2396,6 +2431,13 @@
                         </div>
                         <div class="text-[11px] text-gray-400">${s.entrants.length} &times; &pound;1 &middot; <span class="text-[#61AD34] font-bold">no fees</span></div>
                     </div>
+                    ${s.custom ? `
+                    <div class="mt-2 rounded-lg border border-brand/40 bg-lime-50 dark:bg-gray-800 px-2.5 py-1.5">
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-brand">Custom &middot; settle by group vote</div>
+                        <div class="text-[10px] text-[#3E5210] dark:text-lime-200/70 mt-0.5">
+                            Participants must vote and agree on the outcome. If an agreement is not met, all money will be returned.
+                        </div>
+                    </div>` : ''}
                     ${(s.pending && s.pending.length) ? `
                         <div class="text-[11px] text-gray-400 mt-1.5">
                             ${s.pending.length} invited by text &middot; not in the pot until they join
@@ -2478,11 +2520,46 @@
         ];
         const ALL_FRIENDS = ['Simon', 'Priya', 'Dee', 'Marcus', 'Aoife', 'Tom'];
         let nsFriends = [];      // selected friend names
+        let nsCustom = false;    // custom-question mode
+        let nsResponses = [];    // participant-proposed answers
         let nsPhones = [];       // normalised phone strings
+
+        function toggleNsCustom(force) {
+            nsCustom = typeof force === 'boolean' ? force : !nsCustom;
+            document.getElementById('ns-custom-block').classList.toggle('hidden', !nsCustom);
+            document.getElementById('ns-event').parentElement.classList.toggle('hidden', nsCustom);
+            const knob = document.getElementById('ns-custom-knob');
+            knob.style.transform = nsCustom ? 'translateX(16px)' : '';
+            document.getElementById('ns-custom-toggle').classList.toggle('bg-brand', nsCustom);
+            document.getElementById('ns-custom-toggle').classList.toggle('dark:bg-brand', nsCustom);
+        }
+        function addNsResponse() {
+            const input = document.getElementById('ns-response-input');
+            const val = input.value.trim().replace(/\s+/g, ' ');
+            if (!val) return;
+            if (nsResponses.some(r => r.toLowerCase() === val.toLowerCase())) { showToast('Already added'); return; }
+            if (nsResponses.length >= 8) { showToast('Eight answers max'); return; }
+            nsResponses.push(val);
+            input.value = '';
+            renderNsResponses();
+        }
+        function removeNsResponse(i) { nsResponses.splice(i, 1); renderNsResponses(); }
+        function renderNsResponses() {
+            document.getElementById('ns-response-list').innerHTML = nsResponses.map((r, i) => `
+                <span class="flex items-center space-x-1.5 rounded-full pl-3 pr-2 py-1 border border-brand/50 bg-lime-50 dark:bg-gray-800 text-xs font-bold text-[#3E5210] dark:text-lime-200">
+                    ${esc(r)}<button onclick="removeNsResponse(${i})" class="text-gray-400 hover:text-red-400">&times;</button>
+                </span>`).join('');
+        }
 
         function openNewSweep(btn) {
             pressPop(btn);
             nsFriends = []; nsPhones = [];
+            // reset custom state so nothing leaks between sheets
+            nsCustom = false; nsResponses = [];
+            document.getElementById('ns-custom-q').value = '';
+            document.getElementById('ns-response-input').value = '';
+            renderNsResponses();
+            toggleNsCustom(false);
             document.getElementById('ns-name').value = '';
             document.getElementById('ns-phone').value = '';
             document.getElementById('ns-event').innerHTML =
@@ -2560,12 +2637,25 @@
             pressPop(btn);
             if (balance < SWEEP_ENTRY) { showToast('Not enough balance'); return; }
             const name = document.getElementById('ns-name').value.trim() || 'Untitled sweepstake';
-            const ev = SWEEP_EVENTS[document.getElementById('ns-event').value | 0] || SWEEP_EVENTS[0];
+            let ev;
+            let customMeta = null;
+            if (nsCustom) {
+                const q = document.getElementById('ns-custom-q').value.trim().replace(/\s+/g, ' ');
+                if (!q) { showToast('Write your custom question first'); return; }
+                if (nsResponses.length < 2) { showToast('Add at least two answers'); return; }
+                ev = { event: q, runners: nsResponses.slice() };
+                customMeta = {
+                    rule: 'Participants must vote and agree on the outcome. If an agreement is not met, all money will be returned.'
+                };
+            } else {
+                ev = SWEEP_EVENTS[document.getElementById('ns-event').value | 0] || SWEEP_EVENTS[0];
+            }
 
             balance -= SWEEP_ENTRY;
             const sweep = {
                 id: 'sx' + Date.now(),
                 name: name, host: 'You', event: ev.event, runners: ev.runners.slice(),
+                custom: !!customMeta,
                 // Only paid-up people are entrants; phone invitees sit in
                 // `pending` so the pot never counts money nobody has put in.
                 entrants: [{ who: 'You' }].concat(nsFriends.map(f => ({ who: f }))),
@@ -2580,6 +2670,7 @@
                 members: ['You'].concat(nsFriends),
                 msgs: [{ from: 'me', kind: 'system',
                          text: ev.event + ' · £1 each · no fees'
+                               + (customMeta ? ' · settle by group agreement' : '')
                                + (nsPhones.length ? ' · ' + nsPhones.length + ' invited by text' : ''),
                          t: 'now' }]
             });
