@@ -32,18 +32,27 @@
         :root {
             --team-color: #A6BE47;
             --bg-blur: 6px;
-            --bg-grain-light: 0.18;
+            --bg-grain-light: 0.06;
             --bg-grain-dark: 0.085;
             --bg-grain-blend: normal;
         }
 
+        /* Clips the animated canvas and grain strictly to the alpha shape of logo.svg */
+        .logo-mask {
+            -webkit-mask: url('logo.svg') center / contain no-repeat;
+            mask: url('logo.svg') center / contain no-repeat;
+        }
+
+        /* Kept at 100vw x 100vh so the blobs keep their natural proportions
+           rather than squishing vertically into the logo's aspect ratio. */
         #blob-canvas {
             position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
+            top: 50%;
+            left: 50%;
+            width: 100vw;
+            height: 100vh;
             filter: blur(var(--bg-blur));
-            transform: scale(1.15);
+            transform: translate(-50%, -50%) scale(1.15);
         }
 
         #bg-grain {
@@ -57,30 +66,27 @@
         html.dark #bg-grain {
             opacity: var(--bg-grain-dark);
         }
-
-        html:not(.dark) .text-brand {
-            color: #3E5210;
-        }
     </style>
 </head>
-<body class="bg-[#FCF4F6] dark:bg-[#040403] text-gray-900 dark:text-gray-100 font-sans h-screen w-screen flex flex-col items-center justify-center relative overflow-hidden transition-colors duration-300">
-
-    <!-- ORGANIC BLOB BACKGROUND & GRAIN OVERLAY -->
-    <div class="fixed inset-0 w-full h-full overflow-hidden pointer-events-none -z-10">
-        <canvas id="blob-canvas"></canvas>
-        <div id="bg-grain"></div>
-    </div>
+<body class="bg-[#A6BE47] dark:bg-[#A6BE47] text-white font-sans h-screen w-screen flex flex-col items-center justify-center relative overflow-hidden transition-colors duration-300">
 
     <!-- CENTERED LANDING CONTENT -->
     <main class="flex flex-col items-center justify-center px-4 text-center z-10">
-        <img 
-            src="logo.svg" 
-            alt="prpht" 
-            class="w-[60vw] h-auto select-none"
-            onerror="this.outerHTML='<span class=\'font-black text-brand text-[16vw] leading-none\'>prpht</span>'"
-        >
-        <p class="mt-8 text-sm sm:text-base font-bold tracking-wide text-gray-900 dark:text-gray-400">
-            Enquiries: <a href="mailto:info@prpht.net" class="text-gray-900 dark:text-white font-black hover:text-brand transition-colors">info@prpht.net</a>
+        
+        <!-- MASKED LOGO WINDOW -->
+        <div class="logo-mask relative w-[60vw] overflow-hidden select-none">
+            <!-- Invisible image preserves the exact intrinsic height/aspect-ratio of logo.svg -->
+            <img 
+                src="logo.svg" 
+                alt="prpht" 
+                class="w-full h-auto opacity-0 block pointer-events-none"
+            >
+            <canvas id="blob-canvas" aria-hidden="true"></canvas>
+            <div id="bg-grain" aria-hidden="true"></div>
+        </div>
+
+        <p class="mt-20 text-sm sm:text-base font-bold tracking-wide text-white">
+            Enquiries: <a href="mailto:info@prpht.net" class="text-white font-black hover:opacity-75 transition-opacity">info@prpht.net</a>
         </p>
     </main>
 
@@ -103,7 +109,8 @@
             const target = [WASH[0].slice(), WASH[2].slice(), TEAM.slice()];
             const current = [WASH[0].slice(), WASH[2].slice(), TEAM.slice()];
 
-            const BG_LIGHT = [252, 244, 246];
+            // Pure white base so the un-blobbed areas of the logo stay crisp white
+            const BG_LIGHT = [255, 255, 255];
             const BG_DARK = [4, 4, 3];
             let bg = BG_LIGHT.slice();
 
@@ -153,7 +160,7 @@
                 const want = dark ? BG_DARK : BG_LIGHT;
                 for (let i = 0; i < 3; i++) bg[i] += (want[i] - bg[i]) * 0.12;
                 const bR = bg[0], bG = bg[1], bB = bg[2];
-                const strength = dark ? 0.62 : 0.56;
+                const strength = dark ? 0.62 : 0.52;
 
                 let p = 0;
                 for (let y = 0; y < H; y++) {
@@ -179,7 +186,7 @@
                                 g = current[1][1] + (current[2][1] - current[1][1]) * k;
                                 b = current[1][2] + (current[2][2] - current[1][2]) * k;
                             }
-                            const core = smoothstep(0.78, 0.90, v) * (dark ? 0.35 : 0.22);
+                            const core = smoothstep(0.78, 0.90, v) * (dark ? 0.35 : 0.28);
                             r += (255 - r) * core;
                             g += (255 - g) * core;
                             b += (255 - b) * core;
@@ -205,7 +212,8 @@
             };
         })();
 
-        const BG_STYLE = { blur: 6, grain: 0.085, grainLight: 0.18, grainSize: 1.2, grainBlend: 'normal' };
+        // Lowered grainLight from 0.18 to 0.06 so the noise doesn't grey out the white logo
+        const BG_STYLE = { blur: 6, grain: 0.085, grainLight: 0.06, grainSize: 1.2, grainBlend: 'normal' };
 
         function grainDataUrl(freq) {
             const svg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'>" +
